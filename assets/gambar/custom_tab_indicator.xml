@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Indikator tab -->
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <!-- Warna latar belakang indikator -->
+            <solid android:color="@android:color/transparent" />
+            <!-- Atur lebar indikator -->
+            <padding android:left="10dp" android:right="10dp" />
+        </shape>
+    </item>
+
+    <!-- Indikator tab yang sebenarnya -->
+    <item android:id="@android:id/progress">
+        <shape android:shape="rectangle">
+            <!-- Warna indikator -->
+            <solid android:color="@color/primary_orange" />
+            <!-- Atur lebar indikator sesuai kebutuhan -->
+            <size android:width="50dp" android:height="20dp" />
+        </shape>
+    </item>
+</layer-list>
