@@ -104,4 +104,6 @@ flutter:
     - assets/logo/agencyroom.png
     - assets/lottie/anm_travel.json
     - assets/logo/mega_insurance.png
-
+get:
+  lottie:
+  shared_preferences: ^2.0.15

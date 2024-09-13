@@ -35,7 +35,6 @@ class ReminderView extends StatelessWidget {
                 title: Text(note['title'] ?? ''),
                 subtitle: Text(note['note'] ?? ''),
                 onTap: () {
-                  // Navigasi ke halaman edit dengan data catatan yang dipilih
                   Get.to(() => AddNoteView(
                     index: index,
                     initialTitle: note['title'] ?? '',
@@ -50,7 +49,6 @@ class ReminderView extends StatelessWidget {
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigasi ke halaman untuk menambah catatan baru
           Get.to(() => const AddNoteView());
         },
         backgroundColor: Colors.orange,
