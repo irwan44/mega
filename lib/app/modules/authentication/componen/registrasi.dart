@@ -35,6 +35,56 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
   void initState() {
     super.initState();
   }
+  Future<bool> _onWillPop() async {
+    final shouldExit = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+              color: Colors.white
+          ),
+          padding: EdgeInsets.all(16),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.exit_to_app, color: Colors.orange),
+                title: Text(
+                  'Keluar Dari Registrasi?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text('Apakah Anda yakin ingin keluar dari Registrasi?'),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false), // Jangan keluar
+                    child: Text(
+                      'Tidak',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Get.toNamed(Routes.AUTHENTICATION);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                    ),
+                    child: Text('Ya', style: TextStyle( color: Colors.white),),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    return shouldExit ?? false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+  }
   @override
   void dispose() {
     super.dispose();
@@ -50,7 +100,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
   Widget build(BuildContext context) {
     final AuthenticationController controller = Get.put(AuthenticationController());
 
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+          _onWillPop();
+      return true;
+    },
+    child: Scaffold(
       backgroundColor: Colors.grey.shade100,
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -216,7 +271,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
 
           ],
         ),
-      )),
+      )
+    ),
+    ),
     );
   }
 
@@ -525,7 +582,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               controller: controller.emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.phone_android_rounded, color: Colors.orange),
+                prefixIcon: Icon(Icons.alternate_email_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Email',
                 labelStyle: GoogleFonts.nunito(),

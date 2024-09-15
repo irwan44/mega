@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import '../../../data/data_endpoint/pretest.dart';
+import '../../../data/endpoint.dart';
 
 class QuizProvider extends ChangeNotifier {
   int currentQuestionIndex = 0;
@@ -8,9 +9,27 @@ class QuizProvider extends ChangeNotifier {
   late Timer _timer;
   int _remainingTime = 60;
   bool isQuizOver = false;
+  List<Question> questions = [];
+  String? selectedAnswer; // To track the selected answer
 
   QuizProvider() {
+    _initializeQuiz();
     _startTimer();
+  }
+
+  Future<void> _initializeQuiz() async {
+    questions = await _loadQuestionsFromApi();
+    notifyListeners();
+  }
+
+  Future<List<Question>> _loadQuestionsFromApi() async {
+    try {
+      final List<Question> pretest = await API.PretestID(); // Fetch questions from API
+      return pretest; // Return the list of questions
+    } catch (e) {
+      print('Error loading questions from API: $e');
+      return []; // Return an empty list if an error occurs
+    }
   }
 
   void _startTimer() {
@@ -31,6 +50,7 @@ class QuizProvider extends ChangeNotifier {
   void nextQuestion() {
     if (currentQuestionIndex < questions.length - 1) {
       currentQuestionIndex++;
+      selectedAnswer = null; // Reset the selected answer for the next question
     } else {
       isQuizOver = true;
     }
@@ -38,111 +58,25 @@ class QuizProvider extends ChangeNotifier {
   }
 
   void answerQuestion(String answer) {
+    selectedAnswer = answer; // Track the selected answer
     if (answer == questions[currentQuestionIndex].correctAnswer) {
       score++;
     }
     nextQuestion();
   }
-}
 
-class Question {
-  final String question;
-  final List<String> options;
-  final String correctAnswer;
-
-  Question({
-    required this.question,
-    required this.options,
-    required this.correctAnswer,
-  });
-}
-
-List<Question> questions = [
-  Question(
-    question: 'What is the capital of France?',
-    options: ['Paris', 'London', 'Berlin', 'Madrid'],
-    correctAnswer: 'Paris',
-  ),
-  Question(
-    question: 'What is the largest ocean?',
-    options: ['Atlantic', 'Indian', 'Arctic', 'Pacific'],
-    correctAnswer: 'Pacific',
-  ),
-  Question(
-    question: 'What is the smallest planet in our solar system?',
-    options: ['Mars', 'Mercury', 'Venus', 'Earth'],
-    correctAnswer: 'Mercury',
-  ),
-  Question(
-    question: 'Who wrote "To Kill a Mockingbird"?',
-    options: ['Harper Lee', 'Mark Twain', 'Ernest Hemingway', 'J.K. Rowling'],
-    correctAnswer: 'Harper Lee',
-  ),
-  Question(
-    question: 'What is the chemical symbol for gold?',
-    options: ['Au', 'Ag', 'Pb', 'Fe'],
-    correctAnswer: 'Au',
-  ),
-];
-
-class QuizView extends StatelessWidget {
-  const QuizView({super.key});
+  Future<void> refreshQuestions() async {
+    questions = await _loadQuestionsFromApi();
+    currentQuestionIndex = 0;
+    score = 0;
+    isQuizOver = false;
+    selectedAnswer = null; // Reset selectedAnswer when refreshing questions
+    notifyListeners();
+  }
 
   @override
-  Widget build(BuildContext context) {
-    final quizProvider = Provider.of<QuizProvider>(context);
-    final question = questions[quizProvider.currentQuestionIndex];
-    final isQuizOver = quizProvider.isQuizOver;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quiz App'),
-      ),
-      body: isQuizOver
-          ? Center(
-        child: Text(
-          'Quiz Over! Your score is ${quizProvider.score}',
-          style: const TextStyle(fontSize: 24),
-        ),
-      )
-          : Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Question ${quizProvider.currentQuestionIndex + 1} of ${questions.length}',
-              style: const TextStyle(fontSize: 18),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              question.question,
-              style: const TextStyle(fontSize: 22),
-            ),
-          ),
-          ...question.options.map((option) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  quizProvider.answerQuestion(option);
-                },
-                child: Text(option),
-              ),
-            );
-          }).toList(),
-          Spacer(),
-          Center(
-            child: Text(
-              'Time remaining: ${quizProvider.remainingTime}s',
-              style: const TextStyle(fontSize: 18),
-            ),
-          ),
-        ],
-      ),
-    );
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 }

@@ -4,10 +4,10 @@ import 'package:lottie/lottie.dart';
 import '../controllers/reminder_controller.dart';
 
 class AddNoteView extends StatelessWidget {
-  final int? index; // Index catatan untuk diedit, jika ada
-  final String? initialTitle; // Judul awal jika dalam mode edit
-  final String? initialNote; // Konten awal jika dalam mode edit
-  final String? initialPriority; // Prioritas awal jika dalam mode edit
+  final int? index;
+  final String? initialTitle;
+  final String? initialNote;
+  final String? initialPriority;
 
   const AddNoteView({
     Key? key,
@@ -22,11 +22,15 @@ class AddNoteView extends StatelessWidget {
     final ReminderController controller = Get.find<ReminderController>();
     final TextEditingController titleController = TextEditingController(text: initialTitle ?? '');
     final TextEditingController noteController = TextEditingController(text: initialNote ?? '');
-    final RxString selectedPriority = (initialPriority ?? 'Low').obs; // Prioritas default adalah 'Low'
+    final RxString selectedPriority = (initialPriority ?? 'Low').obs;
 
     return Scaffold(
+      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: false,
       appBar: AppBar(
-        title: Text(index == null ? 'Create Note' : 'Edit Note'),
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.white,
+        title: Text(index == null ? 'Create Reminder' : 'Edit Reminder'),
         centerTitle: true,
       ),
       bottomNavigationBar: Container(
@@ -42,23 +46,23 @@ class AddNoteView extends StatelessWidget {
               if (index == null) {
                 controller.addNote(title, note, priority);
                 Get.snackbar(
-                  'Note Saved',
-                  'Your note "$title" has been saved.',
+                  'Reminder Saved',
+                  'Your Reminder "$title" has been saved.',
                   snackPosition: SnackPosition.BOTTOM,
                 );
               } else {
                 controller.updateNote(index!, title, note, priority);
                 Get.snackbar(
                   'Note Updated',
-                  'Your note "$title" has been updated.',
+                  'Your Reminder "$title" has been updated.',
                   snackPosition: SnackPosition.BOTTOM,
                 );
               }
-              Get.back(); // Kembali ke halaman sebelumnya setelah menyimpan atau memperbarui catatan
+              Get.back();
             } else {
               Get.snackbar(
                 'Error',
-                'Title and note cannot be empty.',
+                'Title and Reminder cannot be empty.',
                 snackPosition: SnackPosition.BOTTOM,
                 backgroundColor: Colors.red,
                 colorText: Colors.white,
@@ -69,14 +73,13 @@ class AddNoteView extends StatelessWidget {
             backgroundColor: Colors.orange,
             padding: const EdgeInsets.symmetric(vertical: 15),
           ),
-          child: Text(index == null ? 'Save Note' : 'Update Note',
+          child: Text(index == null ? 'Save Reminder' : 'Update Reminder',
               style: const TextStyle(fontSize: 18, color: Colors.white)),
         ),
 
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Menentukan apakah layar lebar atau sempit
           bool isWideScreen = constraints.maxWidth > 600;
 
           return SingleChildScrollView(
@@ -93,33 +96,58 @@ class AddNoteView extends StatelessWidget {
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 20),
-
-                  // Input Judul
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.15),
+                      spreadRadius: 5,
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child:
                   TextField(
                     controller: titleController,
                     decoration: InputDecoration(
                       labelText: 'Title',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      border: InputBorder.none,
                     ),
+                  ),
                   ),
                   const SizedBox(height: 20),
 
-                  // Input Konten
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.15),
+                      spreadRadius: 5,
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child:
                   TextField(
                     controller: noteController,
                     maxLines: null,
                     decoration: InputDecoration(
-                      labelText: 'Write your note here...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      labelText: 'Write your Reminder here...',
+                      border: InputBorder.none,
                     ),
                   ),
+                  ),
                   const SizedBox(height: 20),
-
-                  // Pilihan Prioritas
                   const Text(
                     'Priority:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -142,7 +170,6 @@ class AddNoteView extends StatelessWidget {
     );
   }
 
-  // Widget untuk membuat opsi prioritas
   Widget _buildPriorityOption(String priority, RxString selectedPriority, bool isWideScreen) {
     return GestureDetector(
       onTap: () {
@@ -166,7 +193,7 @@ class AddNoteView extends StatelessWidget {
               child: Text(
                 priority,
                 style: TextStyle(
-                  fontSize: isWideScreen ? 20 : 18, // Ukuran font lebih besar di layar lebar
+                  fontSize: isWideScreen ? 20 : 18,
                   color: selectedPriority.value == priority ? Colors.black : Colors.black,
                 ),
               ),

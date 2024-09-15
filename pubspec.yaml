@@ -80,6 +80,7 @@ dependencies:
   table_calendar: ^3.0.6
   stepper_list_view: ^0.0.2
   loading_animation_widget: ^1.2.1
+  flutter_media_downloader: 1.0.6
   slide_countdown: ^1.6.1
   flutter_polyline_points: ^2.0.0
   pinput: ^4.0.0
@@ -92,18 +93,47 @@ flutter:
   uses-material-design: true
   assets:
     - assets/gambar/bg_quiz.png
+    - assets/gambar/bgdepan.png
+    - assets/gambar/celebration.png
     - assets/gambar/login_failed.png
     - assets/gambar/login_top_shape.png
     - assets/gambar/mega.jpg
-    - assets/gambar/celebration.png
     - assets/gambar/product_health_ins.png
-    - assets/gambar/product_vehicle_ins.png
-    - assets/gambar/product_travel_ins.png
     - assets/gambar/product_house_ins.png
+    - assets/gambar/product_travel_ins.png
+    - assets/gambar/product_vehicle_ins.png
     - assets/gambar/town_background_cutout.png
     - assets/logo/agencyroom.png
-    - assets/lottie/anm_travel.json
     - assets/logo/mega_insurance.png
-get:
-  lottie:
-  shared_preferences: ^2.0.15
+    - assets/lottie/anm_travel.json
+    - assets/lottie/anm_arrow.json
+    - assets/lottie/anm_assess.json
+    - assets/lottie/anm_baloon.json
+    - assets/lottie/anm_bird.json
+    - assets/lottie/anm_celebration.json
+    - assets/lottie/anm_chart.json
+    - assets/lottie/anm_checkmark.json
+    - assets/lottie/anm_circle.json
+    - assets/lottie/anm_confirmed.json
+    - assets/lottie/anm_forbidden.json
+    - assets/lottie/anm_helper.json
+    - assets/lottie/anm_id.json
+    - assets/lottie/anm_learning.json
+    - assets/lottie/anm_list.json
+    - assets/lottie/anm_loading.json
+    - assets/lottie/anm_logobg.json
+    - assets/lottie/anm_loading_circle.json
+    - assets/lottie/anm_otp.json
+    - assets/lottie/anm_plane.json
+    - assets/lottie/anm_reminder.json
+    - assets/lottie/anm_rockethire.json
+    - assets/lottie/anm_route.json
+    - assets/lottie/anm_routes.json
+    - assets/lottie/anm_sales.json
+    - assets/lottie/anm_snail.json
+    - assets/lottie/anm_splash.json
+    - assets/lottie/anm_throphy.json
+    - assets/lottie/anm_todo.json
+    - assets/lottie/anm_town.json
+    - assets/lottie/anm_towns.json
+

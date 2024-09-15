@@ -7,6 +7,7 @@ import '../modules/authentication/componen/otp.dart';
 import '../modules/authentication/componen/registrasi.dart';
 import '../modules/authentication/views/authentication_view.dart';
 import '../modules/create/bindings/create_binding.dart';
+import '../modules/create/componen/webview.dart';
 import '../modules/create/views/create_view.dart';
 import '../modules/customers/bindings/customers_binding.dart';
 import '../modules/customers/views/customers_view.dart';
@@ -23,10 +24,12 @@ import '../modules/quiz/views/quiz_view.dart';
 import '../modules/reminder/bindings/reminder_binding.dart';
 import '../modules/reminder/views/reminder_view.dart';
 import '../modules/renew/bindings/renew_binding.dart';
+import '../modules/renew/componen/webviewrenew.dart';
 import '../modules/renew/views/renew_view.dart';
 import '../modules/schedule/bindings/schedule_binding.dart';
 import '../modules/schedule/views/schedule_view.dart';
 import '../modules/setting/bindings/setting_binding.dart';
+import '../modules/setting/componen/edit_account.dart';
 import '../modules/setting/views/setting_view.dart';
 import '../modules/splashscreen/bindings/splashscreen_binding.dart';
 import '../modules/splashscreen/views/splashscreen_view.dart';
@@ -109,19 +112,31 @@ class AppPages {
     GetPage(
       transition: Transition.rightToLeftWithFade,
       name: _Paths.RENEW,
-      page: () => const RenewView(),
+      page: () => WebViewPagerenev(),
       binding: RenewBinding(),
     ),
     GetPage(
       transition: Transition.rightToLeftWithFade,
       name: _Paths.LEARNING,
-      page: () => const LearningView(),
+      page: () => LearningView(),
       binding: LearningBinding(),
     ),
     GetPage(
       transition: Transition.rightToLeftWithFade,
       name: _Paths.OtpVerification,
       page: () => const OtpVerificationPage(),
+      binding: LearningBinding(),
+    ),
+    GetPage(
+      transition: Transition.rightToLeftWithFade,
+      name: _Paths.WebView,
+      page: () => const WebViewPage(),
+      binding: LearningBinding(),
+    ),
+    GetPage(
+      transition: Transition.rightToLeftWithFade,
+      name: _Paths.EditAccountview,
+      page: () => const EditAccount(),
       binding: LearningBinding(),
     ),
   ];

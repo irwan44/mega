@@ -8,9 +8,10 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart'; // Import Provider
 import 'app/data/public.dart';
+import 'app/modules/quiz/componen/quiz_provider.dart';
 import 'app/routes/app_pages.dart';
-
 
 void main() async {
   await GetStorage.init();
@@ -33,7 +34,12 @@ void main() async {
   final InitializationSettings initializationSettings =
   InitializationSettings(android: initializationSettingsAndroid);
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => QuizProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 void startPollingNotifications() {
@@ -69,7 +75,6 @@ class _MyAppState extends State<MyApp> {
     requestPermission();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final token = Publics.controller.getToken.value;
@@ -92,6 +97,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
 Future<bool> requestPermission() async {
   PermissionStatus status = await Permission.mediaLibrary.request();
 

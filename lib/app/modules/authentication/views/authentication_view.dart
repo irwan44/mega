@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../data/endpoint.dart';
@@ -28,10 +29,14 @@ class _AuthenticationViewState extends State<AuthenticationView> {
   }
 
   Future<void> _setExternalId() async {
+    final storage = GetStorage();
     try {
       final verifikasi = await API.VerifikasiID();
       final externalId = verifikasi.data?.externalId;
       if (externalId != null) {
+        // Simpan externalId ke GetStorage
+        storage.write('externalId', externalId);
+        // Atur nilai pada _emailController
         _emailController.text = externalId;
       } else {
         print('External ID is null');
@@ -40,6 +45,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
       print('Error fetching external ID: $e');
     }
   }
+
 
 
   @override

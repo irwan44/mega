@@ -15,12 +15,12 @@ import 'data_endpoint/area.dart';
 import 'data_endpoint/bank.dart';
 
 import 'data_endpoint/curency.dart';
+import 'data_endpoint/learning.dart';
 import 'data_endpoint/otp.dart';
 import 'data_endpoint/pretest.dart';
 import 'data_endpoint/provinsi.dart';
 import 'data_endpoint/registrasi.dart';
 import 'localstorage.dart';
-import 'package:get/get_connect/http/src/multipart/multipart_file.dart';
 
 class API {
   static const _urlbe = 'https://agencyapps.megainsurance.co.id';
@@ -35,6 +35,8 @@ class API {
   static const _PostOTP = '$_baseUrl/verify-otp';
   static const _Postpretes = '$_baseUrl/pre-test/quizzes/latest/questions';
   static const _Postme = '$_baseUrl/me';
+  static const _PostEditAccount = '$_baseUrl/update-profile';
+  static const _PostLearning = '$_baseUrl/course/all';
 
   static Future<String?> login({required String idnumber, required String password}) async {
     final data = {
@@ -293,6 +295,163 @@ class API {
     }
   }
 //Beda
+  static Future<Registrasi> UpdateRegisterID({
+    required String name,
+    required String address,
+    required String place_of_birth,
+    required String date_of_birth,
+    required String phone_number,
+    required String email,
+    required String bank_account_name,
+    required String bank_account_number,
+    required String bank_code,
+    required String bank_currency,
+    required String civil_id,
+    required String tax_id,
+    required String corporate,
+    required String salutation,
+    required String zip_code,
+    required String province,
+    required String city,
+    required String pic,
+    required String gender,
+    required String bank_name,
+    required String license_number,
+    required String password,
+    required String password_confirmation,
+    required File? civil_id_card,
+    required File? tax_id_card,
+    required File? license_aaui,
+    required File? saving_book,
+    required File? siup,
+    required File? profile_picture,
+  }) async {
+    final formData = dio.FormData.fromMap({
+      "name": name,
+      "address": address,
+      "place_of_birth": place_of_birth,
+      "date_of_birth": date_of_birth,
+      "phone_number": phone_number,
+      "bank_name": bank_name,
+      "email": email,
+      "bank_account_name": bank_account_name,
+      "bank_account_number": bank_account_number,
+      "bank_code": bank_code,
+      "bank_currency": bank_currency,
+      "civil_id": civil_id,
+      "tax_id": tax_id,
+      "corporate": corporate,
+      "salutation": salutation,
+      "zip_code": zip_code,
+      "province": province,
+      "city": city,
+      "pic": pic,
+      "gender": gender,
+      "license_number": license_number,
+      "password": password,
+      "password_confirmation": password_confirmation,
+      "civil_id_card": civil_id_card != null
+          ? await dio.MultipartFile.fromFile(
+        civil_id_card.path,
+        filename: civil_id_card.path.split('/').last,
+      )
+          : null,
+      "tax_id_card": tax_id_card != null
+          ? await dio.MultipartFile.fromFile(
+        tax_id_card.path,
+        filename: tax_id_card.path.split('/').last,
+      )
+          : null,
+      "license_aaui": license_aaui != null
+          ? await dio.MultipartFile.fromFile(
+        license_aaui.path,
+        filename: license_aaui.path.split('/').last,
+      )
+          : null,
+      "saving_book": saving_book != null
+          ? await dio.MultipartFile.fromFile(
+        saving_book.path,
+        filename: saving_book.path.split('/').last,
+      )
+          : null,
+      "siup": siup != null
+          ? await dio.MultipartFile.fromFile(
+        siup.path,
+        filename: siup.path.split('/').last,
+      )
+          : null,
+      "profile_picture": profile_picture != null
+          ? await dio.MultipartFile.fromFile(
+        profile_picture.path,
+        filename: profile_picture.path.split('/').last,
+      )
+          : null,
+    });
+
+    try {
+      final token = Publics.controller.getTokenRegis.value ?? '';
+      print('Token: $token');
+
+      var response = await dio.Dio().post(
+        _PostEditAccount,
+        data: formData,
+        options: dio.Options(
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        String? token = response.data['data']?['user']?['token'];
+
+        if (token != null) {
+          await LocalStorages.setTokenRegis(token);
+
+          Get.offAllNamed(Routes.HOME);
+          Get.snackbar(
+            'Hore',
+            'Edit Account Anda Berhasil!',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+          return Registrasi(id: response.data['data']['user']['id'], token: token);
+        } else {
+          print('Token tidak ditemukan, tetapi dianggap berhasil karena status 200.');
+          Get.offAllNamed(Routes.HOME);
+          Get.snackbar(
+            'Success',
+            'Edit Account Anda Berhasil!',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+          return Registrasi(id: response.data['data']['user']['id'], token: '');
+        }
+      } else {
+        Get.snackbar(
+          'Error',
+          'Terjadi kesalahan saat Edit Account',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        throw Exception('Kesalahan saat Edit Account');
+      }
+    } catch (e) {
+      print('Error: $e');
+      Get.snackbar(
+        'Gagal Registrasi',
+        'Terjadi kesalahan saat Edit Account: $e',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      throw e;
+    }
+  }
+
 
 //Beda
   static Future<Bank> BankID() async {
@@ -579,7 +738,7 @@ class API {
 
 
     ///bwda
-  static Future<Pretest> PretestID() async {
+  static Future<List<Question>> PretestID() async {
     try {
       final token = await LocalStorages.getToken;
 
@@ -588,29 +747,92 @@ class API {
         options: Options(
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer $token", // Include the token in the headers
+            "Authorization": "Bearer $token",
           },
         ),
       );
 
-      if (response.statusCode == 404) {
-        return Pretest(message: "Tidak ada data booking untuk karyawan ini.");
-      }
-
-      final obj = Pretest.fromJson(response.data);
-
-      if (obj.message == 'Invalid token: Expired') {
-        Get.snackbar(
-          obj.message.toString(),
-          obj.message.toString(),
-        );
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as List;
+        return data.map((question) => Question.fromApi(question)).toList();
+      } else if (response.statusCode == 404) {
+        Get.snackbar('Error', 'Data not found');
+        return [];
       } else {
-        // Handle other responses if needed
+        Get.snackbar('Error', 'Unexpected error occurred');
+        return [];
+      }
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+      return [];
+    }
+  }
+  //Beda
+  static Future<List<Learning>> LearningID() async {
+    try {
+      final token = Publics.controller.getToken.value ?? '';
+
+      // Log the token value to check if it was retrieved correctly
+      if (token.isEmpty) {
+        print('Error: Token is missing or not retrieved.');
+        Get.snackbar('Error', 'Failed to retrieve token. Please log in.');
+        return [];
       }
 
-      return obj;
-    } catch (e) {
+      print('Token retrieved: $token');
+
+      var response = await Dio().get(
+        _PostLearning, // Replace with your actual API endpoint
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
+
+      // Log the status code to check if the server response is 200
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        // Check the response format
+        if (response.data is List) {
+          // If the response is a list, parse it directly
+          List<Learning> learningList = response.data
+              .map<Learning>((json) => Learning.fromJson(json))
+              .toList();
+          return learningList;
+        } else if (response.data is Map<String, dynamic>) {
+          // If the response is a single object, wrap it in a list
+          Learning singleLearning = Learning.fromJson(response.data);
+          return [singleLearning];
+        } else {
+          throw Exception('Unexpected response format');
+        }
+      } else if (response.statusCode == 404) {
+        // Handle 404 not found case
+        print('Data Not Found: No learning data available.');
+        Get.snackbar('Data Not Found', 'No learning data available.');
+        return []; // Return an empty list
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } on DioError catch (e) {
+      // Handle DioError
+      if (e.response != null) {
+        print('Dio error! Status: ${e.response?.statusCode}, Data: ${e.response?.data}');
+        if (e.response?.statusCode == 401) {
+          Get.offAllNamed(Routes.AUTHENTICATION);
+          Get.snackbar('Unauthorized', 'You are not authorized. Please log in.');
+        }
+      } else {
+        print('Error sending request: ${e.message}');
+      }
       throw e;
+    } catch (e) {
+      print('General error: $e');
+      throw Exception('Failed to load learning data');
     }
   }
 

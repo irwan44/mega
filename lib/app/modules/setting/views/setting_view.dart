@@ -24,6 +24,106 @@ class _SettingViewState extends State<SettingView> {
   // final ProfileController controller = Get.put(ProfileController());
   late RefreshController _refreshController;
 
+  Future<bool> _onWillPop() async {
+    // Tampilkan BottomSheet konfirmasi saat pengguna ingin keluar
+    final shouldExit = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+              color: Colors.white
+          ),
+          padding: EdgeInsets.all(16),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.exit_to_app, color: Colors.red),
+                title: Text(
+                  'Logout Aplikasi?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text('Apakah Anda yakin ingin Logout dari aplikasi?'),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false), // Jangan keluar
+                    child: Text(
+                      'Tidak',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      logout();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                    child: Text('Logout', style: TextStyle( color: Colors.white),),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    return shouldExit ?? false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+  }
+
+  Future<bool> _onWillPopp() async {
+    final shouldExit = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+              color: Colors.white
+          ),
+          padding: EdgeInsets.all(16),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.exit_to_app, color: Colors.orange),
+                title: Text(
+                  'Keluar Aplikasi?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false), // Jangan keluar
+                    child: Text(
+                      'Tidak',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true), // Keluar
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                    ),
+                    child: Text('Ya', style: TextStyle( color: Colors.white),),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    return shouldExit ?? false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+  }
   @override
   void initState() {
     _refreshController =
@@ -32,10 +132,18 @@ class _SettingViewState extends State<SettingView> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+          _onWillPopp();
+      return true;
+    },
+    child:
+      Scaffold(
       backgroundColor: Colors.white,
       extendBodyBehindAppBar: false,
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.white,
         title: Image.asset(
           'assets/logo/mega_insurance.png',
           height: 30,
@@ -79,6 +187,7 @@ class _SettingViewState extends State<SettingView> {
         ],
         ),
         ),
+      ),
       ),
     );
   }
@@ -197,7 +306,7 @@ class _SettingViewState extends State<SettingView> {
           children: [
             InkWell(
               onTap: () {
-
+                Get.toNamed(Routes.EditAccountview);
               },
               child:
               Row(
@@ -275,80 +384,7 @@ class _SettingViewState extends State<SettingView> {
     return InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
-        showDialog(
-          context: context,
-          builder: (context) => Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.all(30),
-              height: 245,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Continue To Logout?",
-                        style: GoogleFonts.nunito(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        "Are you sure to logout from this device?",
-                        style: GoogleFonts.nunito(fontSize: 17),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ButtonSubmitWidget1(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        title: "No, cancel",
-                        bgColor: Colors.white,
-                        textColor: Colors.orange,
-                        fontWeight: FontWeight.normal,
-                        width: 70,
-                        height: 50,
-                        borderSide: Colors.transparent,
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      ButtonSubmitWidget2(
-                        onPressed: () {
-                          logout();
-                        },
-                        title: "Yes, Continue",
-                        bgColor: Colors.orange,
-                        textColor: Colors.white,
-                        fontWeight: FontWeight.normal,
-                        width: 100,
-                        height: 50,
-                        borderSide: Colors.transparent,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
+        _onWillPop();
       },
       child:
       Container(

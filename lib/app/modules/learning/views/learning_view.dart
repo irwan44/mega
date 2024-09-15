@@ -1,24 +1,424 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_media_downloader/flutter_media_downloader.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
+import '../../../data/data_endpoint/learning.dart';
+import '../../../data/endpoint.dart';
 
-import 'package:get/get.dart';
+class LearningView extends StatelessWidget {
+  LearningView({Key? key}) : super(key: key);
+  final _flutterMediaDownloaderPlugin = MediaDownload();
 
-import '../controllers/learning_controller.dart';
-
-class LearningView extends GetView<LearningController> {
-  const LearningView({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('LearningView'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text(
-          'LearningView is working',
-          style: TextStyle(fontSize: 20),
-        ),
+      backgroundColor: Colors.white,
+      body: FutureBuilder<List<Learning>>(
+        future: API.LearningID(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return ListView.builder(
+              padding: EdgeInsets.all(8.0),
+              itemCount: 5,
+              itemBuilder: (context, index) {
+                return ShimmerLoadingCard();
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: GoogleFonts.nunito(),
+              ),
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Text(
+                'No Learning Data Found',
+                style: GoogleFonts.nunito(),
+              ),
+            );
+          }
+
+          final learningData = snapshot.data!;
+
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                surfaceTintColor: Colors.transparent,
+                backgroundColor: Colors.white,
+                expandedHeight: 200.0,
+                flexibleSpace: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final bool isWideScreen = constraints.maxWidth > 600;
+                    return FlexibleSpaceBar(
+                      title: Opacity(
+                        opacity: constraints.biggest.height <= 120 ? 1.0 : 0.0,
+                        child: Text(
+                          'Learning',
+                          style: GoogleFonts.nunito(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      background: Lottie.asset(
+                        'assets/lottie/anm_learning.json',
+                        width: isWideScreen
+                            ? constraints.maxWidth * 0.5
+                            : constraints.maxWidth,
+                        height: isWideScreen
+                            ? constraints.maxHeight * 0.2
+                            : constraints.maxHeight * 0.25,
+                        fit: BoxFit.contain,
+                      ),
+                    );
+                  },
+                ),
+                pinned: true,
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    'Learning',
+                    style: GoogleFonts.nunito(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.start,
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'This section provides learning resources to help you understand different concepts better. Click on each item to explore more.',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16.0,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+              ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    return LearningCard(
+                      learning: learningData[index],
+                      downloader: _flutterMediaDownloaderPlugin,
+                    );
+                  },
+                  childCount: learningData.length,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+}
+
+class ShimmerLoadingCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      color: Colors.grey.shade300,
+      duration: const Duration(seconds: 2),
+      interval: const Duration(seconds: 1),
+      enabled: true,
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.15),
+              spreadRadius: 5,
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: AnimationConfiguration.toStaggeredList(
+            duration: const Duration(milliseconds: 475),
+            childAnimationBuilder: (widget) => SlideAnimation(
+            child: FadeInAnimation(
+            child: widget,
+            ),
+            ),
+            children: [
+              Shimmer(
+                color: Colors.grey.shade300,
+                child: Container(
+                  width: 150,
+                  height: 20,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 10.0),
+              Shimmer(
+                color: Colors.grey.shade300,
+                child: Container(
+                  width: double.infinity,
+                  height: 150,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 10.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Shimmer(
+                    color: Colors.grey.shade300,
+                    child: Container(
+                      width: 100,
+                      height: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Shimmer(
+                    color: Colors.grey.shade300,
+                    child: Container(
+                      width: 100,
+                      height: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.0),
+              Shimmer(
+                color: Colors.grey.shade300,
+                child: Container(
+                  width: 200,
+                  height: 40,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      ),
+    );
+  }
+}
+
+class LearningCard extends StatelessWidget {
+  final Learning learning;
+  final MediaDownload downloader;
+
+  const LearningCard({Key? key, required this.learning, required this.downloader}) : super(key: key);
+
+  Future<void> _requestPermissions() async {
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      await Permission.storage.request();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: AnimationConfiguration.toStaggeredList(
+          duration: const Duration(milliseconds: 475),
+          childAnimationBuilder: (widget) => SlideAnimation(
+            child: FadeInAnimation(
+              child: widget,
+            ),
+          ),
+          children: [
+      Container(
+      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            spreadRadius: 5,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isWideScreen = constraints.maxWidth > 600;
+          return Column(
+            children: [
+            Row(
+            children: [
+              Expanded(
+                flex: isWideScreen ? 2 : 3, // Adjust flex dynamically
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: isWideScreen ? 16.0 : 12.0, // Adjust padding dynamically
+                    horizontal: isWideScreen ? 16.0 : 12.0, // Adjust padding dynamically
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Responsive Title
+                      Text(
+                        learning.title ?? 'No Title',
+                        style: GoogleFonts.nunito(
+                          fontSize: isWideScreen ? 20.0 : 16.0, // Adjust font size for responsiveness
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: isWideScreen ? 10.0 : 8.0),
+
+                      // Responsive Content
+                      Text(
+                        _stripHtmlIfNeeded(learning.content ?? ''),
+                        style: GoogleFonts.nunito(
+                          fontSize: isWideScreen ? 16.0 : 14.0, // Adjust font size
+                          color: Colors.black54,
+                        ),
+                        maxLines: isWideScreen ? 4 : 3, // Adjust max lines for responsiveness
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: isWideScreen ? 12.0 : 10.0),
+
+                      // Responsive Download Button
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            vertical: isWideScreen ? 12.0 : 8.0, // Adjust padding for responsiveness
+                            horizontal: isWideScreen ? 16.0 : 10.0, // Adjust padding for responsiveness
+                          ),
+                        ),
+                        onPressed: () async {
+                          final url = _getFileUrl(learning.fileUpload!);
+                          await _requestPermissions();
+                          try {
+                            await downloader.downloadMedia(context, url);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Download started for $url')),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Could not download file')),
+                            );
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.download_rounded,
+                              size: isWideScreen ? 20 : 16, // Adjust icon size
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: isWideScreen ? 12.0 : 8.0),
+                            Text(
+                              'Download Attachment',
+                              style: GoogleFonts.nunito(
+                                color: Colors.white,
+                                fontSize: isWideScreen ? 16.0 : 14.0, // Adjust font size
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: isWideScreen ? 3 : 2, // Adjust flex dynamically
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15.0), // Adjust the radius for rounded corners
+                    child: Image.network(
+                      _extractImageUrl(learning.content ?? ''),
+                      width: isWideScreen ? 150 : 100, // Adjust width for responsiveness
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Text(
+                        'Failed to load image',
+                        style: GoogleFonts.nunito(fontSize: isWideScreen ? 16.0 : 14.0), // Adjust font size
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+                ],
+              ),
+              Padding(padding: EdgeInsets.only(right: 10, left: 10),
+              child:
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'By: ${learning.createdBy ?? ''}',
+                    style: GoogleFonts.nunito(
+                      color: Colors.grey,
+                      fontSize: isWideScreen ? 14.0 : 12.0, // Adjust font size
+                    ),
+                  ),
+                  Text(
+                    'Created: ${learning.createdAt ?? ''}',
+                    style: GoogleFonts.nunito(
+                      color: Colors.grey,
+                      fontSize: isWideScreen ? 14.0 : 12.0, // Adjust font size
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 10,)
+            ],
+          );
+        },
+        ),
+      )
+      ]
+    )
+    );
+  }
+
+  String _extractImageUrl(String content) {
+    final regex = RegExp(r'src="([^"]+)"');
+    final match = regex.firstMatch(content);
+    if (match != null && match.groupCount > 0) {
+      final imageUrl = match.group(1)!;
+      return imageUrl.startsWith('http')
+          ? imageUrl
+          : 'https://agencydashboard.megainsurance.co.id$imageUrl';
+    }
+    return '';
+  }
+
+  String _getFileUrl(String filePath) {
+    final fullUrl = filePath.startsWith('http')
+        ? filePath
+        : 'https://agencydashboard.megainsurance.co.id$filePath';
+    return fullUrl;
+  }
+
+  String _stripHtmlIfNeeded(String htmlString) {
+    final regex = RegExp(r'<[^>]*>');
+    return htmlString.replaceAll(regex, '');
   }
 }

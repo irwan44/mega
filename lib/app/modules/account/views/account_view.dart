@@ -49,11 +49,11 @@ class _AccountViewState extends State<AccountView> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final score = prefs.getInt('quiz_score');
-      final totalPossibleScore = 100; // Replace with actual total possible score if available
+      final totalPossibleScore = 100;
       if (score != null) {
         return {'score': score, 'total': totalPossibleScore};
       } else {
-        return null; // or handle as needed
+        return null;
       }
     } catch (e) {
       print('Error loading quiz score: $e');
@@ -63,7 +63,6 @@ class _AccountViewState extends State<AccountView> {
 
   Future<Verifikasi?> _loadUserProfile() async {
     try {
-      // Panggil API untuk mendapatkan data profil
       final verifikasi = await API.VerifikasiID();
       return verifikasi;
     } catch (e) {
@@ -72,9 +71,63 @@ class _AccountViewState extends State<AccountView> {
     }
   }
 
+  Future<bool> _onWillPop() async {
+    final shouldExit = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+              color: Colors.white
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            children: [
+              const ListTile(
+                leading: Icon(Icons.exit_to_app, color: Colors.orange),
+                title: Text(
+                  'Keluar Aplikasi?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text(
+                      'Tidak',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                    ),
+                    child: const Text('Ya', style: TextStyle( color: Colors.white),),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    return shouldExit ?? false;
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+      _onWillPop();
+      return true;
+    },
+    child:
+      Scaffold(
       appBar: AppBar(
         title: Image.asset(
           'assets/logo/mega_insurance.png',
@@ -86,13 +139,13 @@ class _AccountViewState extends State<AccountView> {
           Container(
             width: 50,
             height: 50,
-            margin: EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(1000),
               border: Border.all(color: Colors.orange),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.notification_important_sharp,
               color: Colors.orange,
               size: 18,
@@ -105,22 +158,22 @@ class _AccountViewState extends State<AccountView> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return ListView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               children: [
                 _buildShimmerAvatar(),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildShimmerText(),
-                SizedBox(height: 10,),
+                const SizedBox(height: 10,),
                 _buildShimmerText(),
-                SizedBox(height: 10,),
+                const SizedBox(height: 10,),
                 _buildShimmerText(),
-                SizedBox(height: 10,),
+                const SizedBox(height: 10,),
                 _buildShimmerText(),
-                SizedBox(height: 10,),
+                const SizedBox(height: 10,),
                 _buildShimmerText(),
-                SizedBox(height: 10,),
+                const SizedBox(height: 10,),
                 _buildShimmerText(),
-                SizedBox(height: 10,),
+                const SizedBox(height: 10,),
                 _buildShimmerText(),
               ],
             );
@@ -133,7 +186,8 @@ class _AccountViewState extends State<AccountView> {
               onLoading: _onLoading,
               onRefresh: _onRefresh,
               child:
-              SingleChildScrollView(child: Padding(
+              SingleChildScrollView(
+                child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,22 +202,22 @@ class _AccountViewState extends State<AccountView> {
                       Center(
                         child: CircleAvatar(
                           radius: 50,
-                          backgroundImage: userProfile?.pic != null
-                              ? NetworkImage(userProfile!.pic!)
-                              : AssetImage('assets/images/default_avatar.png') as ImageProvider,
+                          backgroundImage: userProfile?.attProfile != null
+                              ? NetworkImage('https://agencyapps.megainsurance.co.id/storage/${userProfile!.attProfile!}')
+                              : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Center(
                         child:  Text(
                           '${userProfile?.name ?? 'N/A'}',
                           style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Center(child :
                       Container(
-                        padding: EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: statusColors[userProfile?.accountStatus ?? -1] ?? Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(10),
@@ -174,10 +228,10 @@ class _AccountViewState extends State<AccountView> {
                         ),
                       ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Container(
                         width: double.infinity,
-                        padding: EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                             color: Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(10)
@@ -199,7 +253,7 @@ class _AccountViewState extends State<AccountView> {
                                       '${userProfile?.bankAccountNumber ?? 'N/A'}',
                                       style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
                                     ),
-                                    SizedBox(width: 10,),
+                                    const SizedBox(width: 10,),
                                     Text(
                                       '(${userProfile?.bankName ?? 'N/A'})',
                                       style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
@@ -224,12 +278,12 @@ class _AccountViewState extends State<AccountView> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
                       Text(
                         'Contact Details',
                         style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +299,7 @@ class _AccountViewState extends State<AccountView> {
                         ],
                       ),
                       Divider(color :Colors.grey.shade300),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +315,7 @@ class _AccountViewState extends State<AccountView> {
                         ],
                       ),
                       Divider(color :Colors.grey.shade300),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,10 +330,10 @@ class _AccountViewState extends State<AccountView> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
                       Container(
                         width: double.infinity,
-                        padding: EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                             color: Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(10)
@@ -299,7 +353,7 @@ class _AccountViewState extends State<AccountView> {
                                   future: _loadQuizScore(),
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return CircularProgressIndicator();
+                                      return const CircularProgressIndicator();
                                     } else if (snapshot.hasData && snapshot.data != null) {
                                       final data = snapshot.data!;
                                       final score = data['score'] ?? 0;
@@ -336,14 +390,7 @@ class _AccountViewState extends State<AccountView> {
                           ],
                         ),
                       ),
-
-                      SizedBox(height: 8),
-
-                      SizedBox(height: 8),
-
-                      SizedBox(height: 8),
-
-                      SizedBox(height: 16),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
@@ -351,7 +398,7 @@ class _AccountViewState extends State<AccountView> {
               ),
             );
           } else {
-            return Center(
+            return const Center(
               child: Text(
                 'Failed to load profile',
                 style: TextStyle(fontSize: 18, color: Colors.red),
@@ -360,16 +407,17 @@ class _AccountViewState extends State<AccountView> {
           }
         },
       ),
+      ),
     );
   }
 
   Widget _buildShimmerAvatar() {
     return Shimmer(
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
       color: Colors.grey[300]!,
       colorOpacity: 0.5,
       enabled: true,
-      direction: ShimmerDirection.fromLBRT(),
+      direction: const ShimmerDirection.fromLBRT(),
       child: CircleAvatar(
         radius: 50,
         backgroundColor: Colors.grey[300],
@@ -379,11 +427,11 @@ class _AccountViewState extends State<AccountView> {
 
   Widget _buildShimmerText() {
     return Shimmer(
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
       color: Colors.grey[300]!,
       colorOpacity: 0.5,
       enabled: true,
-      direction: ShimmerDirection.fromLBRT(),
+      direction: const ShimmerDirection.fromLBRT(),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),

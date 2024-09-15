@@ -19,6 +19,8 @@ abstract class Routes {
   static const RENEW = _Paths.RENEW;
   static const LEARNING = _Paths.LEARNING;
   static const OtpVerification = _Paths.OtpVerification;
+  static const WebView = _Paths.WebView;
+  static const EditAccountview = _Paths.EditAccountview;
 }
 
 abstract class _Paths {
@@ -39,4 +41,6 @@ abstract class _Paths {
   static const RENEW = '/renew';
   static const LEARNING = '/learning';
   static const OtpVerification = '/OtpVerification';
+  static const WebView = '/WebView';
+  static const EditAccountview = '/EditAccountview';
 }
