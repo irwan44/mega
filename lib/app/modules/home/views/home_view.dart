@@ -63,14 +63,14 @@ class _HomeViewState extends State<HomeView> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(false), // Jangan keluar
+                    onPressed: () => Navigator.of(context).pop(false),
                     child: Text(
                       'Tidak',
                       style: TextStyle(color: Colors.red),
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(true), // Keluar
+                    onPressed: () => Navigator.of(context).pop(true),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                     ),

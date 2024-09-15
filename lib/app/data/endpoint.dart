@@ -15,6 +15,7 @@ import 'data_endpoint/area.dart';
 import 'data_endpoint/bank.dart';
 
 import 'data_endpoint/curency.dart';
+import 'data_endpoint/detaillearning.dart';
 import 'data_endpoint/learning.dart';
 import 'data_endpoint/otp.dart';
 import 'data_endpoint/pretest.dart';
@@ -37,6 +38,7 @@ class API {
   static const _Postme = '$_baseUrl/me';
   static const _PostEditAccount = '$_baseUrl/update-profile';
   static const _PostLearning = '$_baseUrl/course/all';
+  static const _PostDetailLearning = '$_baseUrl/course/view';
 
   static Future<String?> login({required String idnumber, required String password}) async {
     final data = {
@@ -835,5 +837,67 @@ class API {
       throw Exception('Failed to load learning data');
     }
   }
+  //BBeda
+  static Future<DetailLearning> DetailLearningID(int id) async {
+    try {
+      final token = Publics.controller.getToken.value ?? '';
 
+      // Check if the token is retrieved correctly
+      if (token.isEmpty) {
+        print('Error: Token is missing or not retrieved.');
+        Get.snackbar('Error', 'Failed to retrieve token. Please log in.');
+        throw Exception('Token missing');
+      }
+
+      print('Token retrieved: $token');
+
+      // Construct the endpoint dynamically using the id
+      String endpoint = '$_PostDetailLearning/$id'; // Replace with your actual endpoint format
+
+      var response = await Dio().get(
+        endpoint,
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
+
+      // Log the response status code and data
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        // Parse the response to DetailLearning
+        if (response.data is Map<String, dynamic>) {
+          return DetailLearning.fromJson(response.data);
+        } else {
+          throw Exception('Unexpected response format');
+        }
+      } else if (response.statusCode == 404) {
+        // Handle 404 not found case
+        print('Data Not Found: No learning data available.');
+        Get.snackbar('Data Not Found', 'No learning data available.');
+        throw Exception('Data Not Found');
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } on DioError catch (e) {
+      // Handle DioError
+      if (e.response != null) {
+        print('Dio error! Status: ${e.response?.statusCode}, Data: ${e.response?.data}');
+        if (e.response?.statusCode == 401) {
+          Get.offAllNamed(Routes.AUTHENTICATION);
+          Get.snackbar('Unauthorized', 'You are not authorized. Please log in.');
+        }
+      } else {
+        print('Error sending request: ${e.message}');
+      }
+      throw e;
+    } catch (e) {
+      print('General error: $e');
+      throw Exception('Failed to load learning data');
+    }
+  }
 }

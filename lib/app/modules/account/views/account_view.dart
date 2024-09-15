@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../data/data_endpoint/verifikasi.dart';
 import '../../../data/endpoint.dart';
-import '../controllers/account_controller.dart';
 
 class AccountView extends StatefulWidget {
   const AccountView({super.key});

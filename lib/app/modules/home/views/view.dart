@@ -42,7 +42,6 @@ class _ViewHomeState extends State<ViewHome> {
 
   Future<Verifikasi?> _loadUserProfile() async {
     try {
-      // Call API to get profile data
       final verifikasi = await API.VerifikasiID();
       return verifikasi;
     } catch (e) {
@@ -51,7 +50,6 @@ class _ViewHomeState extends State<ViewHome> {
     }
   }
   Future<bool> _onWillPop() async {
-    // Tampilkan BottomSheet konfirmasi saat pengguna ingin keluar
     final shouldExit = await showModalBottomSheet<bool>(
       context: context,
       builder: (context) {
@@ -62,7 +60,7 @@ class _ViewHomeState extends State<ViewHome> {
           padding: EdgeInsets.all(16),
           child: Wrap(
             children: [
-              ListTile(
+              const ListTile(
                 leading: Icon(Icons.exit_to_app, color: Colors.orange),
                 title: Text(
                   'Keluar Aplikasi?',
