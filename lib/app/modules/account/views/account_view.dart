@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../data/data_endpoint/verifikasi.dart';
 import '../../../data/endpoint.dart';
 
@@ -44,13 +42,15 @@ class _AccountViewState extends State<AccountView> {
         RefreshController();
     super.initState();
   }
+
   Future<Map<String, int>?> _loadQuizScore() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final score = prefs.getInt('quiz_score');
-      final totalPossibleScore = 100;
-      if (score != null) {
-        return {'score': score, 'total': totalPossibleScore};
+      final correctAnswers = prefs.getInt('quiz_correct_answers') ?? 0;
+      final totalQuestions = prefs.getInt('quiz_total_questions') ?? 1; // Hindari pembagian dengan nol
+
+      if (totalQuestions > 0) {
+        return {'score': correctAnswers, 'total': totalQuestions};
       } else {
         return null;
       }
@@ -59,6 +59,7 @@ class _AccountViewState extends State<AccountView> {
       return null;
     }
   }
+
 
   Future<Verifikasi?> _loadUserProfile() async {
     try {
@@ -356,10 +357,10 @@ class _AccountViewState extends State<AccountView> {
                                     } else if (snapshot.hasData && snapshot.data != null) {
                                       final data = snapshot.data!;
                                       final score = data['score'] ?? 0;
-                                      final total = data['total'] ?? 1; // Avoid division by zero
+                                      final total = data['total'] ?? 1; // Hindari pembagian dengan nol
                                       final percentage = (score / total) * 100;
                                       return Text(
-                                        'Score: (${percentage.toStringAsFixed(2)}%)',
+                                        'Score: ${percentage.toStringAsFixed(2)}%',
                                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       );
                                     } else {
@@ -370,7 +371,6 @@ class _AccountViewState extends State<AccountView> {
                                     }
                                   },
                                 ),
-
                               ],
                             ),
                             Column(

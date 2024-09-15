@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../account/views/account_view.dart';
-import '../../quiz/views/quiz_view.dart';
-import '../../schedule/views/schedule_view.dart';
 import '../../setting/views/setting_view.dart';
-import 'view.dart'; // Asumsikan ini adalah lokasi dari ViewHome
+import 'view.dart';
 
 class HomeView extends StatefulWidget {
 

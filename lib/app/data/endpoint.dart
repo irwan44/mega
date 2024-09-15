@@ -21,6 +21,7 @@ import 'data_endpoint/otp.dart';
 import 'data_endpoint/pretest.dart';
 import 'data_endpoint/provinsi.dart';
 import 'data_endpoint/registrasi.dart';
+import 'data_endpoint/submitquis.dart';
 import 'localstorage.dart';
 
 class API {
@@ -39,6 +40,7 @@ class API {
   static const _PostEditAccount = '$_baseUrl/update-profile';
   static const _PostLearning = '$_baseUrl/course/all';
   static const _PostDetailLearning = '$_baseUrl/course/view';
+  static const _PostSubmitquis = '$_baseUrl/pre-test/quizz/submit';
 
   static Future<String?> login({required String idnumber, required String password}) async {
     final data = {
@@ -767,6 +769,39 @@ class API {
     } catch (e) {
       Get.snackbar('Error', e.toString());
       return [];
+    }
+  }
+  //Beda
+  static Future<SubmitPretest> submitQuiz(int quizId, int userId, List<Map<String, dynamic>> answers) async {
+    try {
+      final token = await LocalStorages.getToken;
+
+      final response = await Dio().post(
+        '$_PostSubmitquis/$quizId',
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+        ),
+        data: {
+          "quiz_id": quizId,
+          "userid": userId,
+          "answers": answers,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = SubmitPretest.fromJson(response.data);
+        print('Success, Quiz submitted successfully!');
+        return result;
+      } else {
+        Get.snackbar('Error', 'Failed to submit quiz');
+        throw Exception('Failed to submit quiz');
+      }
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+      throw e;
     }
   }
   //Beda

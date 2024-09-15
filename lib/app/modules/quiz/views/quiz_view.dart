@@ -103,28 +103,18 @@ class QuizView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    final userId = 9; // Ganti dengan logika untuk mendapatkan user ID
+                    final quizId = question.quizId ?? 0;
+                    quizProvider.submitQuiz(quizId, userId); // Submit jawaban ke API
+                  },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
                   child: Icon(Icons.check, color: Colors.white),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
-                  child: Icon(Icons.people, color: Colors.white),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
-                  child: Icon(Icons.add_alarm, color: Colors.white),
-                ),
-                ElevatedButton(
-                  onPressed: quizProvider.questions.isEmpty ? null : quizProvider.refreshQuestions,
+                  onPressed: quizProvider.isQuizOver ? null : quizProvider.nextQuestion,
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10)),

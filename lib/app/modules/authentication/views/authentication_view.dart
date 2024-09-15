@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../data/data_endpoint/verifikasi.dart';
 import '../../../data/endpoint.dart';
 import '../../../data/localstorage.dart';
 
@@ -46,7 +47,15 @@ class _AuthenticationViewState extends State<AuthenticationView> {
     }
   }
 
-
+  Future<Verifikasi?> _loadUserProfile() async {
+    try {
+      final verifikasi = await API.VerifikasiID();
+      return verifikasi;
+    } catch (e) {
+      print('Error loading user profile: $e');
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,9 +199,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: TextButton(
-                                    onPressed: () {
-
-                                    },
+                                    onPressed: () {},
                                     child: Text(
                                       'Forgot Password',
                                       style: GoogleFonts.nunito(color: isDarkMode ? Colors.blueAccent : Colors.blue),
@@ -216,7 +223,14 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                           );
 
                                           if (token != null) {
-                                            Get.offAllNamed(Routes.QUIZ);
+                                            final verifikasi = await API.VerifikasiID();
+
+                                            if (verifikasi.data?.preTest == true) {
+                                              Get.offAllNamed(Routes.HOME);
+                                            } else {
+                                              Get.offAllNamed(Routes.QUIZ);
+                                            }
+
                                             print("Login successful, received token: $token");
                                           } else {
                                             Get.snackbar('Error', 'Terjadi kesalahan saat login',
@@ -284,5 +298,3 @@ class _AuthenticationViewState extends State<AuthenticationView> {
     );
   }
 }
-
-
