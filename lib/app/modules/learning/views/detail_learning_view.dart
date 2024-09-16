@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_media_downloader/flutter_media_downloader.dart'; // Import yang benar
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../data/data_endpoint/detaillearning.dart';
 import '../../../data/data_endpoint/learning.dart';
-import '../../../data/endpoint.dart'; // Your data endpoint for learning details
+import '../../../data/endpoint.dart';
 
 class DetailLearningView extends StatefulWidget {
   final int id; // Learning ID
-  const DetailLearningView({super.key, required this.id});
+  final MediaDownload downloader; // Gunakan MediaDownload
+  const DetailLearningView({super.key, required this.id, required this.downloader});
 
   @override
   State<DetailLearningView> createState() => _DetailLearningViewState();
@@ -25,6 +28,13 @@ class _DetailLearningViewState extends State<DetailLearningView> {
   void initState() {
     super.initState();
     _refreshController = RefreshController();
+  }
+
+  Future<void> _requestPermissions() async {
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      await Permission.storage.request();
+    }
   }
 
   Future<DetailLearning> fetchDetailLearning(int id) async {
@@ -44,14 +54,13 @@ class _DetailLearningViewState extends State<DetailLearningView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      extendBodyBehindAppBar: false,
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.white,
         title: Text('Learning Detail', style: GoogleFonts.nunito()),
       ),
       body: FutureBuilder<DetailLearning>(
-        future: fetchDetailLearning(widget.id), // Correctly use widget.id here
+        future: fetchDetailLearning(widget.id), // Gunakan widget.id
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildShimmerLoading();
@@ -133,11 +142,15 @@ class _DetailLearningViewState extends State<DetailLearningView> {
                   TextButton.icon(
                     onPressed: () async {
                       final url = _getFileUrl(learning!.fileUpload!);
-                      if (await canLaunch(url)) {
-                        await launch(url);
-                      } else {
+                      await _requestPermissions();
+                      try {
+                        await widget.downloader.downloadMedia(context, url);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Could not launch $url')),
+                          SnackBar(content: Text('Download started for $url')),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not download file')),
                         );
                       }
                     },
@@ -163,7 +176,6 @@ class _DetailLearningViewState extends State<DetailLearningView> {
     });
   }
 
-  // Shimmer effect widget
   Widget _buildShimmerLoading() {
     return Padding(
       padding: const EdgeInsets.all(16.0),

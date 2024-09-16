@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:provider/provider.dart'; // Import provider
-import '../componen/quiz_provider.dart';
+import 'package:provider/provider.dart';
 
-class QuizView extends StatelessWidget {
-  const QuizView({Key? key}) : super(key: key);
+import '../../../routes/app_pages.dart';
+import '../componen/test_provider.dart';
+
+class TestpageView extends StatelessWidget {
+  const TestpageView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final quizProvider = Provider.of<QuizProvider>(context);
+    final TestquizProvider = Provider.of<TestProvider>(context);
+    if (TestquizProvider.questions.isEmpty) {
+      print('Loading... Menunggu pertanyaan dimuat dari API.');
 
-    if (quizProvider.questions.isEmpty) {
       return Scaffold(
         appBar: AppBar(
           title: Text('Agency Pre-Test'),
@@ -24,18 +28,30 @@ class QuizView extends StatelessWidget {
       );
     }
 
-    final question = quizProvider.questions[quizProvider.currentQuestionIndex];
-    final progress = (quizProvider.currentQuestionIndex / quizProvider.questions.length) * 100;
+    final question = TestquizProvider.questions[TestquizProvider.currentQuestionIndex];
+    final progress = (TestquizProvider.currentQuestionIndex / TestquizProvider.questions.length) * 100;
 
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+          Get.toNamed(Routes.HOME);
+      return true;
+    },
+    child:
+      Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Agency Pre-Test',
+          'Agency Post-Test',
           style: const TextStyle(fontSize: 18, color: Colors.black),
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Get.toNamed(Routes.HOME);
+          },
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.help_outline, color: Colors.black),
@@ -72,7 +88,7 @@ class QuizView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'Question ${quizProvider.currentQuestionIndex + 1}/${quizProvider.questions.length}',
+                    'Question ${TestquizProvider.currentQuestionIndex + 1}/${TestquizProvider.questions.length}',
                     style: const TextStyle(fontSize: 18, color: Colors.black),
                   ),
                   SizedBox(height: 20),
@@ -84,20 +100,20 @@ class QuizView extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
                   LinearProgressIndicator(
-                    value: (quizProvider.remainingTime / 60),
+                    value: (TestquizProvider.remainingTime / 60),
                     backgroundColor: Colors.grey[300],
                     color: Colors.orange,
                   ),
                   SizedBox(height: 5),
                   Text(
-                    '00:${quizProvider.remainingTime.toString().padLeft(2, '0')}',
+                    '00:${TestquizProvider.remainingTime.toString().padLeft(2, '0')}',
                     style: const TextStyle(fontSize: 16, color: Colors.black),
                   ),
                 ],
               ),
             ),
             SizedBox(height: 20),
-            ..._buildAnswerOptions(quizProvider, question.options),
+            ..._buildAnswerOptions(TestquizProvider, question.options),
             Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -106,7 +122,7 @@ class QuizView extends StatelessWidget {
                   onPressed: () {
                     final userId = 9;
                     final quizId = question.quizId ?? 0;
-                    quizProvider.submitQuiz(quizId, userId);
+                    TestquizProvider.submitQuiz(quizId, userId);
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
@@ -114,7 +130,7 @@ class QuizView extends StatelessWidget {
                   child: Icon(Icons.check, color: Colors.white),
                 ),
                 ElevatedButton(
-                  onPressed: quizProvider.isQuizOver ? null : quizProvider.nextQuestion,
+                  onPressed: TestquizProvider.isQuizOver ? null : TestquizProvider.nextQuestion,
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
@@ -124,11 +140,12 @@ class QuizView extends StatelessWidget {
             ),
           ],
         ),
+        ),
       ),
     );
   }
 
-  List<Widget> _buildAnswerOptions(QuizProvider quizProvider, List<String> options) {
+  List<Widget> _buildAnswerOptions(TestProvider quizProvider, List<String> options) {
     const labels = ['A', 'B', 'C', 'D'];
     return options.asMap().entries.map((entry) {
       int index = entry.key;

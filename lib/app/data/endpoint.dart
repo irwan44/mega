@@ -18,6 +18,7 @@ import 'data_endpoint/curency.dart';
 import 'data_endpoint/detaillearning.dart';
 import 'data_endpoint/learning.dart';
 import 'data_endpoint/otp.dart';
+import 'data_endpoint/posttest.dart';
 import 'data_endpoint/pretest.dart';
 import 'data_endpoint/provinsi.dart';
 import 'data_endpoint/registrasi.dart';
@@ -41,6 +42,8 @@ class API {
   static const _PostLearning = '$_baseUrl/course/all';
   static const _PostDetailLearning = '$_baseUrl/course/view';
   static const _PostSubmitquis = '$_baseUrl/pre-test/quizz/submit';
+  static const _Posttest = '$_baseUrl/post-test/quizzes/latest/questions';
+  static const _PostSubmittest = '$_baseUrl/post-test/quizzes/submit';
 
   static Future<String?> login({required String idnumber, required String password}) async {
     final data = {
@@ -695,53 +698,108 @@ class API {
   }
 
   //Beda
-    static Future<Verifikasi> VerifikasiID() async {
-      // Retrieve token from local storage
-      final token = await LocalStorages.getToken;
+  static Future<Verifikasi> VerifikasiID() async {
+    // Retrieve token from local storage
+    final token = await LocalStorages.getToken;
 
-      if (token == null) {
-        throw Exception('No token found');
-      }
-
-      try {
-        // Make the API request
-        final response = await Dio().get(
-          _Postme,
-          options: Options(
-            headers: {
-              "Authorization": "Bearer $token",
-            },
-          ),
-        );
-
-        // Log response status and data
-        print('VerifikasiID Response status: ${response.statusCode}');
-        print('VerifikasiID Response data: ${response.data}');
-
-        if (response.statusCode == 200) {
-          // Parse the response data
-          final verifikasi = Verifikasi.fromJson(response.data);
-
-          // Extract external ID and save to local storage
-          String? externalId = verifikasi.data?.externalId;
-          await LocalStorages.saveExternalId(externalId ?? '');
-
-          print('Saved external ID: ${externalId ?? 'empty'}');
-          return verifikasi;
-        } else {
-          throw Exception(
-              'Failed to verify ID. Status code: ${response.statusCode}');
-        }
-      } catch (e) {
-        // Handle and log errors
-        print('Error during VerifikasiID: $e');
-        throw Exception('An error occurred during verification. Details: $e');
-      }
+    if (token == null) {
+      throw Exception('No token found');
     }
 
+    try {
+      // Make the API request
+      final response = await Dio().get(
+        _Postme,
+        options: Options(
+          headers: {
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
 
+      // Log response status and data
+      print('VerifikasiID Response status: ${response.statusCode}');
+      print('VerifikasiID Response data: ${response.data}');
 
-    ///bwda
+      if (response.statusCode == 200) {
+        // Parse the response data
+        final verifikasi = Verifikasi.fromJson(response.data);
+
+        // Extract external ID from response
+        String? externalId = verifikasi.data?.externalId;
+
+        // If externalId is null, use the one stored locally
+        if (externalId == null) {
+          externalId = await LocalStorages.getExternalId();
+          print('Using saved local external ID: ${externalId ?? 'empty'}');
+        } else {
+          // Save the new external ID to local storage
+          await LocalStorages.saveExternalId(externalId);
+          print('Saved new external ID: $externalId');
+        }
+
+        return verifikasi;
+      } else {
+        throw Exception(
+            'Failed to verify ID. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Check for DioError and handle specific status code
+      if (e is DioError) {
+        // Check if status code is 401 and externalId is not null
+        if (e.response?.statusCode == 401) {
+          // Show BottomSheet first
+          _showUnauthorizedBottomSheet();
+          return Future.error('Unauthorized. Please log in.');
+        }
+      }
+      print('Error during VerifikasiID: $e');
+      throw Exception('An error occurred during verification. Details: $e');
+    }
+  }
+
+// Show BottomSheet for Unauthorized Access
+  static void _showUnauthorizedBottomSheet() {
+    showModalBottomSheet(
+      context: Get.context!,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Unauthorized Access',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'You are not authorized. Please log in.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Get.offAllNamed(Routes.AUTHENTICATION);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                child: Text('Go to Login', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  ///bwda
   static Future<List<Question>> PretestID() async {
     try {
       final token = await LocalStorages.getToken;
@@ -772,12 +830,81 @@ class API {
     }
   }
   //Beda
+  static Future<List<TestQuestion>> TestPretestID() async {
+    try {
+      final token = await LocalStorages.getToken;
+
+      final response = await Dio().get(
+        _Posttest,
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
+
+      // Cetak respons untuk debugging
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as List;
+        return data.map((question) => TestQuestion.fromApi(question)).toList();
+      } else if (response.statusCode == 404) {
+        Get.snackbar('Error', 'Data not found');
+        return [];
+      } else {
+        Get.snackbar('Error', 'Unexpected error occurred');
+        return [];
+      }
+    } catch (e) {
+      print('Exception occurred: $e'); // Cetak pesan kesalahan
+      Get.snackbar('Error', e.toString());
+      return [];
+    }
+  }
+
+  //Beda
   static Future<SubmitPretest> submitQuiz(int quizId, int userId, List<Map<String, dynamic>> answers) async {
     try {
       final token = await LocalStorages.getToken;
 
       final response = await Dio().post(
         '$_PostSubmitquis/$quizId',
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+        ),
+        data: {
+          "quiz_id": quizId,
+          "userid": userId,
+          "answers": answers,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = SubmitPretest.fromJson(response.data);
+        print('Success, Quiz submitted successfully!');
+        return result;
+      } else {
+        Get.snackbar('Error', 'Failed to submit quiz');
+        throw Exception('Failed to submit quiz');
+      }
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+      throw e;
+    }
+  }
+  //Beda
+  static Future<SubmitPretest> submitTest(int quizId, int userId, List<Map<String, dynamic>> answers) async {
+    try {
+      final token = await LocalStorages.getToken;
+
+      final response = await Dio().post(
+        '$_PostSubmittest/$quizId',
         options: Options(
           headers: {
             "Content-Type": "application/json",

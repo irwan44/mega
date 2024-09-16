@@ -9,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'app/data/public.dart';
 import 'app/modules/quiz/componen/quiz_provider.dart';
+import 'app/modules/testpage/componen/test_provider.dart';
 import 'app/routes/app_pages.dart';
 
 void main() async {
@@ -33,8 +34,11 @@ void main() async {
   InitializationSettings(android: initializationSettingsAndroid);
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => QuizProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => QuizProvider()),
+        ChangeNotifierProvider(create: (_) => TestProvider()),
+      ],
       child: const MyApp(),
     ),
   );

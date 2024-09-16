@@ -21,6 +21,8 @@ abstract class Routes {
   static const OtpVerification = _Paths.OtpVerification;
   static const WebView = _Paths.WebView;
   static const EditAccountview = _Paths.EditAccountview;
+  static const TESTPAGE = _Paths.TESTPAGE;
+  static const NewPassword = _Paths.NewPassword;
 }
 
 abstract class _Paths {
@@ -43,4 +45,6 @@ abstract class _Paths {
   static const OtpVerification = '/OtpVerification';
   static const WebView = '/WebView';
   static const EditAccountview = '/EditAccountview';
+  static const TESTPAGE = '/testpage';
+  static const NewPassword = '/NewPassword';
 }

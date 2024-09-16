@@ -4,33 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/data_endpoint/pretest.dart';
-import '../../../data/endpoint.dart';
 import 'package:get/get.dart';
 
-class QuizProvider extends ChangeNotifier {
+import '../../../data/data_endpoint/posttest.dart';
+import '../../../data/endpoint.dart';
+
+class TestProvider extends ChangeNotifier {
   int currentQuestionIndex = 0;
   int score = 0;
   Timer? _timer;
-  int _remainingTime = 60;
+  int _remainingTime = 60; // Set waktu default per pertanyaan
   bool isQuizOver = false;
-  List<Question> questions = [];
+  List<TestQuestion> questions = [];
   String? selectedAnswer;
   List<Map<String, dynamic>> answers = [];
 
-  QuizProvider() {
+  TestProvider() {
     _initializeQuiz();
   }
 
   Future<void> _initializeQuiz() async {
+    print('Memulai inisialisasi quiz...');
     questions = await _loadQuestionsFromApi();
+    print('Jumlah pertanyaan yang dimuat: ${questions.length}');
     _startTimer(); // Mulai timer setelah pertanyaan dimuat
     notifyListeners();
   }
 
-  Future<List<Question>> _loadQuestionsFromApi() async {
+  Future<List<TestQuestion>> _loadQuestionsFromApi() async {
     try {
-      final List<Question> pretest = await API.PretestID();
+      final List<TestQuestion> pretest = await API.TestPretestID();
+      print('Pertanyaan berhasil dimuat dari API: $pretest');
       return pretest;
     } catch (e) {
       print('Error loading questions from API: $e');
@@ -39,6 +43,7 @@ class QuizProvider extends ChangeNotifier {
   }
 
   void _startTimer() {
+    print('Memulai timer...');
     _remainingTime = 60; // Setel ulang waktu setiap kali timer dimulai
     _timer?.cancel(); // Hentikan timer sebelumnya jika ada
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -87,16 +92,20 @@ class QuizProvider extends ChangeNotifier {
 
   Future<void> submitQuiz(int quizId, int userId) async {
     try {
-      final result = await API.submitQuiz(quizId, userId, answers);
+      print('Mengirim hasil kuis...');
+      final result = await API.submitTest(quizId, userId, answers);
       final correctAnswersFromApi = result.data?.correctAnswers ?? 0;
       final totalQuestionsFromApi = result.data?.totalQuestions ?? 0;
       final prefs = await SharedPreferences.getInstance();
-      final localCorrectAnswers = prefs.getInt('quiz_correct_answers') ?? 0;
-      final localTotalQuestions = prefs.getInt('quiz_total_questions') ?? 0;
+      final localCorrectAnswers = prefs.getInt('test_correct_answers') ?? 0;
+      final localTotalQuestions = prefs.getInt('test_total_questions') ?? 0;
+
       if (correctAnswersFromApi != localCorrectAnswers || totalQuestionsFromApi != localTotalQuestions) {
-        await prefs.setInt('quiz_correct_answers', correctAnswersFromApi);
-        await prefs.setInt('quiz_total_questions', totalQuestionsFromApi);
+        await prefs.setInt('test_correct_answers', correctAnswersFromApi);
+        await prefs.setInt('test_total_questions', totalQuestionsFromApi);
       }
+
+      print('Hasil kuis berhasil dikirim: ${result.data}');
       Get.defaultDialog(
         title: "Quiz Result",
         content: Column(
@@ -118,7 +127,7 @@ class QuizProvider extends ChangeNotifier {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                Get.offAllNamed(Routes.HOME); // Navigasi ke halaman Home
+                Get.offAllNamed(Routes.HOME);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
@@ -131,6 +140,7 @@ class QuizProvider extends ChangeNotifier {
         barrierDismissible: true,
       );
     } catch (e) {
+      print('Error saat mengirim hasil kuis: $e');
       Get.snackbar('Error', e.toString());
     }
   }

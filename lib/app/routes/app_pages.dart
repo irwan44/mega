@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../modules/account/bindings/account_binding.dart';
 import '../modules/account/views/account_view.dart';
 import '../modules/authentication/bindings/authentication_binding.dart';
+import '../modules/authentication/componen/newpassword.dart';
 import '../modules/authentication/componen/otp.dart';
 import '../modules/authentication/componen/registrasi.dart';
 import '../modules/authentication/views/authentication_view.dart';
@@ -33,6 +34,8 @@ import '../modules/setting/componen/edit_account.dart';
 import '../modules/setting/views/setting_view.dart';
 import '../modules/splashscreen/bindings/splashscreen_binding.dart';
 import '../modules/splashscreen/views/splashscreen_view.dart';
+import '../modules/testpage/bindings/testpage_binding.dart';
+import '../modules/testpage/views/testpage_view.dart';
 
 part 'app_routes.dart';
 
@@ -100,7 +103,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.QUIZ,
-      page: () =>  QuizView(),
+      page: () => QuizView(),
       binding: QuizBinding(),
     ),
     GetPage(
@@ -138,6 +141,18 @@ class AppPages {
       name: _Paths.EditAccountview,
       page: () => const EditAccount(),
       binding: LearningBinding(),
+    ),
+    GetPage(
+      transition: Transition.rightToLeftWithFade,
+      name: _Paths.TESTPAGE,
+      page: () => const TestpageView(),
+      binding: TestpageBinding(),
+    ),
+    GetPage(
+      transition: Transition.rightToLeftWithFade,
+      name: _Paths.NewPassword,
+      page: () => const NewPasswordPage(),
+      binding: TestpageBinding(),
     ),
   ];
 }

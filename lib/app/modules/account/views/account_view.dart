@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -36,10 +34,10 @@ class _AccountViewState extends State<AccountView> {
     4: 'PreTest',
     5: 'PostTest',
   };
+
   @override
   void initState() {
-    _refreshController =
-        RefreshController();
+    _refreshController = RefreshController();
     super.initState();
   }
 
@@ -47,7 +45,7 @@ class _AccountViewState extends State<AccountView> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final correctAnswers = prefs.getInt('quiz_correct_answers') ?? 0;
-      final totalQuestions = prefs.getInt('quiz_total_questions') ?? 1; // Hindari pembagian dengan nol
+      final totalQuestions = prefs.getInt('quiz_total_questions') ?? 1;
 
       if (totalQuestions > 0) {
         return {'score': correctAnswers, 'total': totalQuestions};
@@ -60,6 +58,22 @@ class _AccountViewState extends State<AccountView> {
     }
   }
 
+  Future<Map<String, int>?> _loadTestQuizScore() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final correctAnswers = prefs.getInt('test_correct_answers') ?? 0;
+      final totalQuestions = prefs.getInt('test_total_questions') ?? 1;
+
+      if (totalQuestions > 0) {
+        return {'score': correctAnswers, 'total': totalQuestions};
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error loading quiz score: $e');
+      return null;
+    }
+  }
 
   Future<Verifikasi?> _loadUserProfile() async {
     try {
@@ -76,9 +90,7 @@ class _AccountViewState extends State<AccountView> {
       context: context,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-              color: Colors.white
-          ),
+          decoration: const BoxDecoration(color: Colors.white),
           padding: const EdgeInsets.all(16),
           child: Wrap(
             children: [
@@ -86,7 +98,7 @@ class _AccountViewState extends State<AccountView> {
                 leading: Icon(Icons.exit_to_app, color: Colors.orange),
                 title: Text(
                   'Keluar Aplikasi?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               const Padding(
@@ -108,7 +120,10 @@ class _AccountViewState extends State<AccountView> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                     ),
-                    child: const Text('Ya', style: TextStyle( color: Colors.white),),
+                    child: const Text(
+                      'Ya',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ),
@@ -119,293 +134,333 @@ class _AccountViewState extends State<AccountView> {
     );
     return shouldExit ?? false;
   }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () async {
-      _onWillPop();
-      return true;
-    },
-    child:
-      Scaffold(
-      appBar: AppBar(
-        title: Image.asset(
-          'assets/logo/mega_insurance.png',
-          height: 30,
-        ),
-        centerTitle: false,
-        automaticallyImplyLeading: false,
-        actions: [
-          Container(
-            width: 50,
-            height: 50,
-            margin: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(1000),
-              border: Border.all(color: Colors.orange),
-            ),
-            child: const Icon(
-              Icons.notification_important_sharp,
-              color: Colors.orange,
-              size: 18,
-            ),
+      onWillPop: () async {
+        _onWillPop();
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Image.asset(
+            'assets/logo/mega_insurance.png',
+            height: 30,
           ),
-        ],
-      ),
-      body: FutureBuilder<Verifikasi?>(
-        future: _loadUserProfile(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildShimmerAvatar(),
-                const SizedBox(height: 16),
-                _buildShimmerText(),
-                const SizedBox(height: 10,),
-                _buildShimmerText(),
-                const SizedBox(height: 10,),
-                _buildShimmerText(),
-                const SizedBox(height: 10,),
-                _buildShimmerText(),
-                const SizedBox(height: 10,),
-                _buildShimmerText(),
-                const SizedBox(height: 10,),
-                _buildShimmerText(),
-                const SizedBox(height: 10,),
-                _buildShimmerText(),
-              ],
-            );
-          } else if (snapshot.hasData && snapshot.data != null) {
-            final userProfile = snapshot.data!.data;
-            return SmartRefresher(
-              controller: _refreshController,
-              enablePullDown: true,
-              header: const WaterDropHeader(),
-              onLoading: _onLoading,
-              onRefresh: _onRefresh,
-              child:
-              SingleChildScrollView(
-                child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: AnimationConfiguration.toStaggeredList(
-                    duration: const Duration(milliseconds: 475),
-                    childAnimationBuilder: (widget) => SlideAnimation(
-                      child: FadeInAnimation(
-                        child: widget,
-                      ),
-                    ),
-                    children: [
-                      Center(
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundImage: userProfile?.attProfile != null
-                              ? NetworkImage('https://agencyapps.megainsurance.co.id/storage/${userProfile!.attProfile!}')
-                              : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
+          centerTitle: false,
+          automaticallyImplyLeading: false,
+          actions: [
+            Container(
+              width: 50,
+              height: 50,
+              margin: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(1000),
+                border: Border.all(color: Colors.orange),
+              ),
+              child: const Icon(
+                Icons.notification_important_sharp,
+                color: Colors.orange,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+        body: FutureBuilder<Verifikasi?>(
+          future: _loadUserProfile(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Display shimmer loading effect while waiting
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildShimmerAvatar(),
+                  const SizedBox(height: 16),
+                  _buildShimmerText(width: 200), // Name shimmer
+                  const SizedBox(height: 20),
+                  Center(child: _buildShimmerContainer(width: 120, height: 30)), // Status shimmer
+                  const SizedBox(height: 20),
+                  _buildShimmerContainer(width: double.infinity, height: 80), // Account details shimmer
+                  const SizedBox(height: 30),
+                  _buildShimmerText(width: 150), // Contact Details title shimmer
+                  const SizedBox(height: 20),
+                  _buildShimmerText(width: double.infinity), // Contact info shimmer
+                  Divider(color: Colors.grey.shade300),
+                  const SizedBox(height: 8),
+                  _buildShimmerText(width: double.infinity), // Contact info shimmer
+                  Divider(color: Colors.grey.shade300),
+                  const SizedBox(height: 8),
+                  _buildShimmerText(width: double.infinity), // Contact info shimmer
+                  const SizedBox(height: 30),
+                  _buildShimmerContainer(width: double.infinity, height: 80), // Scores shimmer
+                ],
+              );
+            } else if (snapshot.hasData && snapshot.data != null) {
+              final userProfile = snapshot.data!.data;
+              return SmartRefresher(
+                controller: _refreshController,
+                enablePullDown: true,
+                header: const WaterDropHeader(),
+                onLoading: _onLoading,
+                onRefresh: _onRefresh,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: AnimationConfiguration.toStaggeredList(
+                        duration: const Duration(milliseconds: 475),
+                        childAnimationBuilder: (widget) => SlideAnimation(
+                          child: FadeInAnimation(
+                            child: widget,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Center(
-                        child:  Text(
-                          '${userProfile?.name ?? 'N/A'}',
-                          style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(child :
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: statusColors[userProfile?.accountStatus ?? -1] ?? Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          statusMessages[userProfile?.accountStatus ?? -1] ?? 'N/A',
-                          style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(10)
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
+                        children: [
+                          Center(
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage: userProfile?.attProfile != null
+                                  ? NetworkImage('https://agencyapps.megainsurance.co.id/storage/${userProfile!.attProfile!}')
+                                  : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Center(
+                            child: Text(
+                              '${userProfile?.name ?? 'N/A'}',
+                              style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: statusColors[userProfile?.accountStatus ?? -1] ?? Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                statusMessages[userProfile?.accountStatus ?? -1] ?? 'N/A',
+                                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Account Number: ',
-                                  style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
-                                ),
-                                Row(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${userProfile?.bankAccountNumber ?? 'N/A'}',
-                                      style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
+                                      'Account Number: ',
+                                      style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
                                     ),
-                                    const SizedBox(width: 10,),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '${userProfile?.bankAccountNumber ?? 'N/A'}',
+                                          style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          '(${userProfile?.bankName ?? 'N/A'})',
+                                          style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
                                     Text(
-                                      '(${userProfile?.bankName ?? 'N/A'})',
+                                      'External ID',
+                                      style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
+                                    ),
+                                    Text(
+                                      '${userProfile?.externalId ?? 'N/A'}',
                                       style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'External ID',
-                                  style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
-                                ),
-                                Text(
-                                  '${userProfile?.externalId ?? 'N/A'}',
-                                  style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                              ],
+                          ),
+                          const SizedBox(height: 30),
+                          Text(
+                            'Contact Details',
+                            style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Email ',
+                                style: GoogleFonts.nunito(fontSize: 16),
+                              ),
+                              Text(
+                                '${userProfile?.email ?? 'N/A'}',
+                                style: GoogleFonts.nunito(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          Divider(color: Colors.grey.shade300),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Phone Number ',
+                                style: GoogleFonts.nunito(fontSize: 16),
+                              ),
+                              Text(
+                                '${userProfile?.phoneNumber ?? 'N/A'}',
+                                style: GoogleFonts.nunito(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          Divider(color: Colors.grey.shade300),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Address ',
+                                style: GoogleFonts.nunito(fontSize: 16),
+                              ),
+                              Text(
+                                '${userProfile?.address ?? 'N/A'}',
+                                style: GoogleFonts.nunito(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 30),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Text(
-                        'Contact Details',
-                        style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Email ',
-                            style: GoogleFonts.nunito(fontSize: 16),
-                          ),
-                          Text(
-                            '${userProfile?.email ?? 'N/A'}',
-                            style: GoogleFonts.nunito(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      Divider(color :Colors.grey.shade300),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Phone Number ',
-                            style: GoogleFonts.nunito(fontSize: 16),
-                          ),
-                          Text(
-                            '${userProfile?.phoneNumber ?? 'N/A'}',
-                            style: GoogleFonts.nunito(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      Divider(color :Colors.grey.shade300),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Address ',
-                            style: GoogleFonts.nunito(fontSize: 16),
-                          ),
-                          Text(
-                            '${userProfile?.address ?? 'N/A'}',
-                            style: GoogleFonts.nunito(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(10)
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Pre-Test Score ',
-                                  style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Pre-Test Score ',
+                                      style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
+                                    ),
+                                    FutureBuilder<Map<String, int>?>(
+                                      future: _loadQuizScore(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState == ConnectionState.waiting) {
+                                          return const CircularProgressIndicator();
+                                        } else if (snapshot.hasData && snapshot.data != null) {
+                                          final data = snapshot.data!;
+                                          final score = data['score'] ?? 0;
+                                          final total = data['total'] ?? 1;
+                                          final percentage = (score / total) * 100;
+                                          return Text(
+                                            'Score: ${percentage.toStringAsFixed(2)}%',
+                                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                          );
+                                        } else {
+                                          return const Text(
+                                            'No Quiz Score Available',
+                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
-                                FutureBuilder<Map<String, int>?>(
-                                  future: _loadQuizScore(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return const CircularProgressIndicator();
-                                    } else if (snapshot.hasData && snapshot.data != null) {
-                                      final data = snapshot.data!;
-                                      final score = data['score'] ?? 0;
-                                      final total = data['total'] ?? 1; // Hindari pembagian dengan nol
-                                      final percentage = (score / total) * 100;
-                                      return Text(
-                                        'Score: ${percentage.toStringAsFixed(2)}%',
-                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                      );
-                                    } else {
-                                      return const Text(
-                                        'No Quiz Score Available',
-                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                      );
-                                    }
-                                  },
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Post-Test Score',
+                                      style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
+                                    ),
+                                    FutureBuilder<Map<String, int>?>(
+                                      future: _loadTestQuizScore(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState == ConnectionState.waiting) {
+                                          return const CircularProgressIndicator();
+                                        } else if (snapshot.hasData && snapshot.data != null) {
+                                          final data = snapshot.data!;
+                                          final score = data['score'] ?? 0;
+                                          final total = data['total'] ?? 1;
+                                          final percentage = (score / total) * 100;
+                                          return Text(
+                                            'Score: ${percentage.toStringAsFixed(2)}%',
+                                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                          );
+                                        } else {
+                                          return const Text(
+                                            'No Quiz Score Available',
+                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'Post-Test Score',
-                                  style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
-                                ),
-                                Text(
-                                  '',
-                                  style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-              ),
-            );
-          } else {
-            return const Center(
-              child: Text(
-                'Failed to load profile',
-                style: TextStyle(fontSize: 18, color: Colors.red),
-              ),
-            );
-          }
-        },
-      ),
+              );
+            } else {
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildShimmerAvatar(),
+                  const SizedBox(height: 16),
+                  _buildShimmerText(width: 200), // Name shimmer
+                  const SizedBox(height: 20),
+                  Center(child: _buildShimmerContainer(width: 120, height: 30)), // Status shimmer
+                  const SizedBox(height: 20),
+                  _buildShimmerContainer(width: double.infinity, height: 80), // Account details shimmer
+                  const SizedBox(height: 30),
+                  _buildShimmerText(width: 150), // Contact Details title shimmer
+                  const SizedBox(height: 20),
+                  _buildShimmerText(width: double.infinity), // Contact info shimmer
+                  Divider(color: Colors.grey.shade300),
+                  const SizedBox(height: 8),
+                  _buildShimmerText(width: double.infinity), // Contact info shimmer
+                  Divider(color: Colors.grey.shade300),
+                  const SizedBox(height: 8),
+                  _buildShimmerText(width: double.infinity), // Contact info shimmer
+                  const SizedBox(height: 30),
+                  _buildShimmerContainer(width: double.infinity, height: 80), // Scores shimmer
+                ],
+              );
+            }
+          },
+        ),
       ),
     );
   }
@@ -424,7 +479,7 @@ class _AccountViewState extends State<AccountView> {
     );
   }
 
-  Widget _buildShimmerText() {
+  Widget _buildShimmerText({required double width}) {
     return Shimmer(
       duration: const Duration(seconds: 2),
       color: Colors.grey[300]!,
@@ -432,29 +487,42 @@ class _AccountViewState extends State<AccountView> {
       enabled: true,
       direction: const ShimmerDirection.fromLBRT(),
       child: Container(
+        width: width,
+        height: 20,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: Colors.grey[300],
         ),
-        height: 20,
+      ),
+    );
+  }
 
+  Widget _buildShimmerContainer({required double width, required double height}) {
+    return Shimmer(
+      duration: const Duration(seconds: 2),
+      color: Colors.grey[300]!,
+      colorOpacity: 0.5,
+      enabled: true,
+      direction: const ShimmerDirection.fromLBRT(),
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.grey[300],
+        ),
       ),
     );
   }
 
   _onLoading() {
-    _refreshController
-        .loadComplete(); // after data returned,set the //footer state to idle
+    _refreshController.loadComplete();
   }
 
   _onRefresh() {
     HapticFeedback.lightImpact();
     setState(() {
-
-      // const ProfileView();
-      _refreshController
-          .refreshCompleted();
+      _refreshController.refreshCompleted();
     });
   }
 }
-

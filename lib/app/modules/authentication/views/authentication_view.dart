@@ -5,6 +5,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../../data/data_endpoint/verifikasi.dart';
 import '../../../data/endpoint.dart';
@@ -22,38 +23,33 @@ class _AuthenticationViewState extends State<AuthenticationView> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscureText = true;
+  Future<String?>? _externalIdFuture;
+  bool _isLoading = false; // Menambahkan state untuk mengelola loading
 
   @override
   void initState() {
     super.initState();
-    _setExternalId();
+    // Initialize Future to fetch external ID from local storage or API
+    _externalIdFuture = _fetchExternalId();
   }
 
-  Future<void> _setExternalId() async {
+  Future<String?> _fetchExternalId() async {
     final storage = GetStorage();
     try {
       final verifikasi = await API.VerifikasiID();
-      final externalId = verifikasi.data?.externalId;
+      String? externalId = verifikasi.data?.externalId;
+
       if (externalId != null) {
-        // Simpan externalId ke GetStorage
         storage.write('externalId', externalId);
-        // Atur nilai pada _emailController
-        _emailController.text = externalId;
+        return externalId;
       } else {
-        print('External ID is null');
+        externalId = storage.read('externalId');
+        print('Using saved local external ID: ${externalId ?? 'empty'}');
+        return externalId;
       }
     } catch (e) {
       print('Error fetching external ID: $e');
-    }
-  }
-
-  Future<Verifikasi?> _loadUserProfile() async {
-    try {
-      final verifikasi = await API.VerifikasiID();
-      return verifikasi;
-    } catch (e) {
-      print('Error loading user profile: $e');
-      return null;
+      return storage.read('externalId');
     }
   }
 
@@ -125,35 +121,51 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                               ),
                               children: [
                                 SizedBox(height: 20),
-                                TextFormField(
-                                  controller: _emailController,
-                                  decoration: InputDecoration(
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.orange, width: 2.0),
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    focusedErrorBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.grey)),
-                                    labelText: 'Profile Id',
-                                    filled: true,
-                                    fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
-                                    labelStyle: GoogleFonts.nunito(color: isDarkMode ? Colors.white70 : Colors.black54),
-                                  ),
-                                  keyboardType: TextInputType.text,
-                                  style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter your email';
+                                FutureBuilder<String?>(
+                                  future: _externalIdFuture,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return LoadingAnimationWidget.newtonCradle(
+                                        color: Colors.white,
+                                        size: 70,
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return Text('Error loading external ID');
+                                    } else {
+                                      _emailController.text = snapshot.data ?? '';
+                                      return TextFormField(
+                                        controller: _emailController,
+                                        decoration: InputDecoration(
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(10.0),
+                                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: Colors.orange, width: 2.0),
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(10.0),
+                                          ),
+                                          focusedErrorBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(width: 1, color: Colors.grey)),
+                                          labelText: 'Profile Id',
+                                          filled: true,
+                                          fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                          labelStyle: GoogleFonts.nunito(color: isDarkMode ? Colors.white70 : Colors.black54),
+                                        ),
+                                        keyboardType: TextInputType.text,
+                                        style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter your email';
+                                          }
+                                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                                            return 'Enter a valid email';
+                                          }
+                                          return null;
+                                        },
+                                      );
                                     }
-                                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                                      return 'Enter a valid email';
-                                    }
-                                    return null;
                                   },
                                 ),
                                 SizedBox(height: 16),
@@ -209,7 +221,10 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: () async {
+                                    onPressed: _isLoading ? null : () async {
+                                      setState(() {
+                                        _isLoading = true; // Menunjukkan status loading
+                                      });
                                       HapticFeedback.lightImpact();
                                       if (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
                                         try {
@@ -241,13 +256,25 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                           print('Error during login: $e');
                                           Get.snackbar('Gagal Login', 'Terjadi kesalahan saat login',
                                               backgroundColor: Colors.redAccent, colorText: Colors.white);
+                                        } finally {
+                                          setState(() {
+                                            _isLoading = false; // Menghentikan loading setelah proses selesai
+                                          });
                                         }
                                       } else {
                                         Get.snackbar('Gagal Login', 'Username dan Password harus diisi',
                                             backgroundColor: Colors.redAccent, colorText: Colors.white);
+                                        setState(() {
+                                          _isLoading = false; // Menghentikan loading jika validasi gagal
+                                        });
                                       }
                                     },
-                                    child: Text(
+                                    child: _isLoading
+                                        ? LoadingAnimationWidget.newtonCradle(
+                                      color:Colors.orange,
+                                      size: 100,
+                                    )
+                                        : Text(
                                       'Login',
                                       style: GoogleFonts.nunito(fontSize: 18, color: Colors.white),
                                     ),
@@ -298,3 +325,4 @@ class _AuthenticationViewState extends State<AuthenticationView> {
     );
   }
 }
+

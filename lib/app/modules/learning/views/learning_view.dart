@@ -27,12 +27,12 @@ class _LearningViewState extends State<LearningView> {
   @override
   void initState() {
     super.initState();
-    _refreshController = RefreshController(); // Initialize the RefreshController here
+    _refreshController = RefreshController();
   }
 
   @override
   void dispose() {
-    _refreshController.dispose(); // Dispose the RefreshController when the widget is disposed
+    _refreshController.dispose();
     super.dispose();
   }
 
@@ -157,7 +157,7 @@ class _LearningViewState extends State<LearningView> {
   }
 
   void _onLoading() {
-    _refreshController.loadComplete(); // after data returned, set the footer state to idle
+    _refreshController.loadComplete();
   }
 
   void _onRefresh() {
@@ -168,7 +168,6 @@ class _LearningViewState extends State<LearningView> {
   }
 }
 
-// Your ShimmerLoadingCard and LearningCard classes remain unchanged.
 
 class ShimmerLoadingCard extends StatelessWidget {
   @override
@@ -288,11 +287,9 @@ class LearningCard extends StatelessWidget {
         children: [
           InkWell(
             onTap: () {
-              // Check if learning.id is not null before navigating
               if (learning.id != null) {
-                Get.to(() => DetailLearningView(id: learning.id!)); // Use learning.id! to safely cast to int
+                Get.to(() => DetailLearningView(id: learning.id!, downloader: downloader));
               } else {
-                // Handle the case where ID is null (if needed)
                 Get.snackbar('Error', 'Learning ID is missing.');
               }
             },

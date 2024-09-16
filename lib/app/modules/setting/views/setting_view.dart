@@ -330,6 +330,30 @@ class _SettingViewState extends State<SettingView> {
             ),
             InkWell(
               onTap: () {
+                Get.toNamed(Routes.NewPassword);
+              },
+              child:
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.password_rounded,),
+                      SizedBox(width: 10,),
+                      Text('Change Password', style: GoogleFonts.nunito(fontWeight: FontWeight.bold),),
+                    ],),
+
+                  Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey.shade400,),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: Divider(color: Colors.grey.shade300,),
+            ),
+            InkWell(
+              onTap: () {
 
               },
               child:

@@ -181,10 +181,14 @@ class AddNoteView extends StatelessWidget {
         decoration: BoxDecoration(
           color: selectedPriority.value == priority ? Colors.green.shade100 : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: selectedPriority.value == priority ? Colors.green : Colors.grey.shade300,
-            width: 2,
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.15),
+              spreadRadius: 5,
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           children: [
