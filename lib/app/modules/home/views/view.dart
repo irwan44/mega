@@ -13,7 +13,8 @@ import 'package:bank_mega/app/routes/app_pages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../data/data_endpoint/verifikasi.dart';
-import '../../../data/endpoint.dart'; // Import route file
+import '../../../data/endpoint.dart';
+import '../../testpage/views/testpage_view.dart'; // Import route file
 
 class ViewHome extends StatefulWidget {
   const ViewHome({super.key});
@@ -229,7 +230,7 @@ class _ViewHomeState extends State<ViewHome> {
                                 _buildMenuItem(context, 'Renew', Icons.refresh),
                                 _buildMenuItem(context, 'Ranks', Icons.star),
                                 _buildMenuItem(context, 'Learning', Icons.school),
-                                _buildMenuItem(context, 'Test', Icons.assignment),
+                                _buildMenuItem(context, 'Post-Test', Icons.assignment),
                                 _buildMenuItem(
                                     context, 'Reminder', Icons.alarm), // Menu Reminder
                               ],
@@ -315,9 +316,7 @@ class _ViewHomeState extends State<ViewHome> {
                                     ),
                                   ),
                                   Text(
-                                    userProfile?.corporate == true
-                                        ? 'Corporate'
-                                        : 'Individual',
+                                    userProfile?.corporate == true ? 'Corporate' : 'Individual',
                                     style: GoogleFonts.nunito(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -326,12 +325,11 @@ class _ViewHomeState extends State<ViewHome> {
                                 ],
                               );
                             } else {
-                              return Center(
-                                child: LoadingAnimationWidget.newtonCradle(
-                                  color: Colors.white,
-                                  size: 70,
-                                ),
-                              );
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                _showUnauthorizedBottomSheet(context);
+                              });
+
+                              return SizedBox.shrink();
                             }
                           },
                         ),
@@ -345,6 +343,51 @@ class _ViewHomeState extends State<ViewHome> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showUnauthorizedBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          width: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Unauthorized Access',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'You are not authorized. Please log in.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Get.offAllNamed(Routes.AUTHENTICATION);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                child: const Text('Go to Login', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -430,28 +473,22 @@ class _ViewHomeState extends State<ViewHome> {
           double scorePercentage = 0.0;
           String testType = '';
 
-          // Load user profile to check the account status
           final userProfile = await _loadUserProfile();
           final accountStatus = userProfile?.data?.accountStatus ?? -1;
+          final postTestScore = double.tryParse(userProfile?.data?.postTestScore ?? "") ?? 0.0;
 
-          if (title == 'Test') {
-            // Ensure user account is "Approved" before allowing access
-            if (accountStatus == 2) { // Account is Approved
+          if (title == 'Post-Test') {
+            if (accountStatus == 2) {
               _showTestInstructions();
             } else {
               _showAccessDeniedForApproval();
             }
           } else if (title == 'Create' || title == 'Renew') {
-            // Access to 'Create' or 'Renew' based on post-test score
-            final testQuizScore = await _loadTestQuizScore();
-            final totalQuestions = testQuizScore?['total'] ?? 0;
-            final correctAnswers = testQuizScore?['score'] ?? 0;
-            scorePercentage = (totalQuestions > 0) ? (correctAnswers / totalQuestions) * 100 : 0;
             testType = 'Post-Test';
             print('Title: $title');
-            print('Score Percentage: ${scorePercentage.toStringAsFixed(2)}%');
-            // Check the post-test score for access
-            if (scorePercentage >= 80) {
+            print('Post-Test Score: ${postTestScore.toStringAsFixed(2)}%');
+
+            if (postTestScore >= 80.0) {
               Get.toNamed(title == 'Create' ? Routes.WebView : Routes.RENEW);
             } else {
               _showAccessDenied(title, testType);
@@ -504,7 +541,6 @@ class _ViewHomeState extends State<ViewHome> {
     );
   }
 
-
   void _showTestInstructions() {
     showModalBottomSheet(
       showDragHandle: true,
@@ -517,10 +553,9 @@ class _ViewHomeState extends State<ViewHome> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Tambahkan gambar asset di atas teks
               Image.asset(
-                'assets/gambar/login_failed.png', // Ganti dengan path gambar yang sesuai
-                height: 100, // Sesuaikan tinggi gambar sesuai kebutuhan
+                'assets/gambar/login_failed.png',
+                height: 100,
               ),
               const SizedBox(height: 10),
               const Text(
@@ -533,14 +568,17 @@ class _ViewHomeState extends State<ViewHome> {
               ),
               const SizedBox(height: 10),
               const Text(
-                'Selamat! Status akun Anda telah disetujui, dan Anda sekarang dapat mengakses menu "Test". Pastikan Anda siap untuk menjawab setiap pertanyaan dengan cermat dan teliti. Perhatikan baik-baik setiap instruksi yang diberikan, dan berusahalah sebaik mungkin untuk mencapai hasil terbaik.',
+                'Selamat! Status akun Anda telah disetujui, dan Anda sekarang dapat mengakses menu "Post-Test". Pastikan Anda siap untuk menjawab setiap pertanyaan dengan cermat dan teliti. Perhatikan baik-baik setiap instruksi yang diberikan, dan berusahalah sebaik mungkin untuk mencapai hasil terbaik.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Get.toNamed(Routes.TESTPAGE);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TestpageView()), // Navigasi ke halaman TestpageView
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,

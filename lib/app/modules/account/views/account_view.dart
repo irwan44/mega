@@ -41,40 +41,6 @@ class _AccountViewState extends State<AccountView> {
     super.initState();
   }
 
-  Future<Map<String, int>?> _loadQuizScore() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final correctAnswers = prefs.getInt('quiz_correct_answers') ?? 0;
-      final totalQuestions = prefs.getInt('quiz_total_questions') ?? 1;
-
-      if (totalQuestions > 0) {
-        return {'score': correctAnswers, 'total': totalQuestions};
-      } else {
-        return null;
-      }
-    } catch (e) {
-      print('Error loading quiz score: $e');
-      return null;
-    }
-  }
-
-  Future<Map<String, int>?> _loadTestQuizScore() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final correctAnswers = prefs.getInt('test_correct_answers') ?? 0;
-      final totalQuestions = prefs.getInt('test_total_questions') ?? 1;
-
-      if (totalQuestions > 0) {
-        return {'score': correctAnswers, 'total': totalQuestions};
-      } else {
-        return null;
-      }
-    } catch (e) {
-      print('Error loading quiz score: $e');
-      return null;
-    }
-  }
-
   Future<Verifikasi?> _loadUserProfile() async {
     try {
       final verifikasi = await API.VerifikasiID();
@@ -248,6 +214,18 @@ class _AccountViewState extends State<AccountView> {
                             ),
                           ),
                           const SizedBox(height: 20),
+                          if (userProfile?.rejectionNote != null)
+                            Center(
+                              child: Text(
+                                'Note Rejection : ${userProfile!.rejectionNote}',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 20),
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(20),
@@ -368,27 +346,9 @@ class _AccountViewState extends State<AccountView> {
                                       'Pre-Test Score ',
                                       style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
                                     ),
-                                    FutureBuilder<Map<String, int>?>(
-                                      future: _loadQuizScore(),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState == ConnectionState.waiting) {
-                                          return const CircularProgressIndicator();
-                                        } else if (snapshot.hasData && snapshot.data != null) {
-                                          final data = snapshot.data!;
-                                          final score = data['score'] ?? 0;
-                                          final total = data['total'] ?? 1;
-                                          final percentage = (score / total) * 100;
-                                          return Text(
-                                            'Score: ${percentage.toStringAsFixed(2)}%',
-                                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                          );
-                                        } else {
-                                          return const Text(
-                                            'No Quiz Score Available',
-                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                          );
-                                        }
-                                      },
+                                    Text(
+                                      '${userProfile?.preTestScore ?? 'N/A'}',
+                                      style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
@@ -399,27 +359,9 @@ class _AccountViewState extends State<AccountView> {
                                       'Post-Test Score',
                                       style: GoogleFonts.nunito(fontSize: 16, color: Colors.grey),
                                     ),
-                                    FutureBuilder<Map<String, int>?>(
-                                      future: _loadTestQuizScore(),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState == ConnectionState.waiting) {
-                                          return const CircularProgressIndicator();
-                                        } else if (snapshot.hasData && snapshot.data != null) {
-                                          final data = snapshot.data!;
-                                          final score = data['score'] ?? 0;
-                                          final total = data['total'] ?? 1;
-                                          final percentage = (score / total) * 100;
-                                          return Text(
-                                            'Score: ${percentage.toStringAsFixed(2)}%',
-                                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                          );
-                                        } else {
-                                          return const Text(
-                                            'No Quiz Score Available',
-                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                          );
-                                        }
-                                      },
+                                    Text(
+                                      '${userProfile?.postTestScore ?? 'N/A'}',
+                                      style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),

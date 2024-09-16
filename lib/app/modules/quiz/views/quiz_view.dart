@@ -1,10 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart'; // Import provider
+import '../../../data/data_endpoint/verifikasi.dart';
+import '../../../data/endpoint.dart';
 import '../componen/quiz_provider.dart';
 
-class QuizView extends StatelessWidget {
+
+  class QuizView extends StatefulWidget {
   const QuizView({Key? key}) : super(key: key);
+
+  @override
+  _QuizViewState createState() => _QuizViewState();
+  }
+
+  class _QuizViewState extends State<QuizView> with WidgetsBindingObserver {
+    Future<Verifikasi?>? _userProfileFuture;
+    @override
+    void initState() {
+      super.initState();
+      _userProfileFuture = _loadUserProfile(); // Inisialisasi future untuk profil pengguna
+    }
+  int? userId;
+  Future<Verifikasi?> _loadUserProfile() async {
+    try {
+      final verifikasi = await API.VerifikasiID();
+      userId = verifikasi.data?.userId;
+      return verifikasi;
+    } catch (e) {
+      print('Error loading user profile: $e');
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,9 +130,12 @@ class QuizView extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    final userId = 9;
                     final quizId = question.quizId ?? 0;
-                    quizProvider.submitQuiz(quizId, userId);
+                    if (userId != null) {
+                      quizProvider.submitQuiz(quizId, userId!);
+                    } else {
+                      print('User ID not found');
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,

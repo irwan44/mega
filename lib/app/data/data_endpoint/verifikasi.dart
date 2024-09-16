@@ -1,13 +1,11 @@
 class Verifikasi {
-  int? code;
   String? status;
   String? message;
   Data? data;
 
-  Verifikasi({this.code, this.status, this.message, this.data});
+  Verifikasi({this.status, this.message, this.data});
 
   Verifikasi.fromJson(Map<String, dynamic> json) {
-    code = json['code'];
     status = json['status'];
     message = json['message'];
     data = json['data'] != null ? new Data.fromJson(json['data']) : null;
@@ -15,7 +13,6 @@ class Verifikasi {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['code'] = this.code;
     data['status'] = this.status;
     data['message'] = this.message;
     if (this.data != null) {
@@ -30,12 +27,13 @@ class Data {
   String? name;
   String? email;
   String? emailVerifiedAt;
+  String? password;
   int? accountStatus;
+  String? rememberToken;
   String? createdAt;
   String? updatedAt;
   bool? postTest;
   bool? preTest;
-  String? idNumber;
   int? userId;
   String? address;
   String? placeOfBirth;
@@ -65,18 +63,21 @@ class Data {
   String? attSiup;
   String? attProfile;
   String? rejectionNote;
+  String? preTestScore;
+  String? postTestScore;
 
   Data(
       {this.id,
         this.name,
         this.email,
         this.emailVerifiedAt,
+        this.password,
         this.accountStatus,
+        this.rememberToken,
         this.createdAt,
         this.updatedAt,
         this.postTest,
         this.preTest,
-        this.idNumber,
         this.userId,
         this.address,
         this.placeOfBirth,
@@ -105,19 +106,22 @@ class Data {
         this.attSaving,
         this.attSiup,
         this.attProfile,
-        this.rejectionNote});
+        this.rejectionNote,
+        this.preTestScore,
+        this.postTestScore});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
     email = json['email'];
     emailVerifiedAt = json['email_verified_at'];
+    password = json['password'];
     accountStatus = json['account_status'];
+    rememberToken = json['remember_token'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     postTest = json['post_test'];
     preTest = json['pre_test'];
-    idNumber = json['id_number'];
     userId = json['user_id'];
     address = json['address'];
     placeOfBirth = json['place_of_birth'];
@@ -147,6 +151,8 @@ class Data {
     attSiup = json['att_siup'];
     attProfile = json['att_profile'];
     rejectionNote = json['rejection_note'];
+    preTestScore = json['pre_test_score'];
+    postTestScore = json['post_test_score'];
   }
 
   Map<String, dynamic> toJson() {
@@ -155,12 +161,13 @@ class Data {
     data['name'] = this.name;
     data['email'] = this.email;
     data['email_verified_at'] = this.emailVerifiedAt;
+    data['password'] = this.password;
     data['account_status'] = this.accountStatus;
+    data['remember_token'] = this.rememberToken;
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;
     data['post_test'] = this.postTest;
     data['pre_test'] = this.preTest;
-    data['id_number'] = this.idNumber;
     data['user_id'] = this.userId;
     data['address'] = this.address;
     data['place_of_birth'] = this.placeOfBirth;
@@ -190,6 +197,8 @@ class Data {
     data['att_siup'] = this.attSiup;
     data['att_profile'] = this.attProfile;
     data['rejection_note'] = this.rejectionNote;
+    data['pre_test_score'] = this.preTestScore;
+    data['post_test_score'] = this.postTestScore;
     return data;
   }
 }

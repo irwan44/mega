@@ -18,16 +18,29 @@ class TestProvider extends ChangeNotifier {
   List<TestQuestion> questions = [];
   String? selectedAnswer;
   List<Map<String, dynamic>> answers = [];
+  bool isInitialized = false;
+  bool isPaused = false; // Menambahkan flag untuk cek apakah timer dipause
 
   TestProvider() {
-    _initializeQuiz();
+    initializeQuiz();
   }
 
-  Future<void> _initializeQuiz() async {
-    print('Memulai inisialisasi quiz...');
+  Future<void> initializeQuiz() async {
+    if (!isInitialized) {
+      print('Memulai inisialisasi quiz...');
+      await refreshQuestions(); // Memuat pertanyaan dari API
+      _startTimer(); // Mulai timer setelah pertanyaan dimuat
+      isInitialized = true; // Tandai sebagai sudah diinisialisasi
+    }
+  }
+
+  Future<void> refreshQuestions() async {
+    print('Memuat ulang pertanyaan dari API...');
     questions = await _loadQuestionsFromApi();
-    print('Jumlah pertanyaan yang dimuat: ${questions.length}');
-    _startTimer(); // Mulai timer setelah pertanyaan dimuat
+    print('Jumlah pertanyaan yang dimuat ulang: ${questions.length}');
+    currentQuestionIndex = 0; // Reset ke pertanyaan pertama
+    selectedAnswer = null;
+    _resetTimer(); // Mulai ulang timer
     notifyListeners();
   }
 
@@ -44,18 +57,36 @@ class TestProvider extends ChangeNotifier {
 
   void _startTimer() {
     print('Memulai timer...');
-    _remainingTime = 60; // Setel ulang waktu setiap kali timer dimulai
-    _timer?.cancel(); // Hentikan timer sebelumnya jika ada
+    _remainingTime = 60;
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingTime > 0) {
+      if (_remainingTime > 0 && !isPaused) {
         _remainingTime--;
         print('Sisa waktu untuk pertanyaan ${currentQuestionIndex + 1}: $_remainingTime detik');
         notifyListeners();
-      } else {
+      } else if (_remainingTime <= 0) {
         _timer?.cancel();
-        _handleTimeout(); // Panggil fungsi untuk menangani waktu habis
+        _handleTimeout();
       }
     });
+  }
+
+  void _resetTimer() {
+    _timer?.cancel(); // Hentikan timer sebelumnya jika ada
+    _remainingTime = 60; // Setel ulang waktu untuk pertanyaan baru
+    _startTimer(); // Mulai ulang timer
+  }
+
+  void pauseTimer() {
+    isPaused = true;
+    _timer?.cancel();
+  }
+
+  void resumeTimer() {
+    if (isPaused) {
+      isPaused = false;
+      _startTimer(); // Mulai timer kembali saat halaman aktif lagi
+    }
   }
 
   void _handleTimeout() {
@@ -69,7 +100,7 @@ class TestProvider extends ChangeNotifier {
     if (currentQuestionIndex < questions.length - 1) {
       currentQuestionIndex++;
       selectedAnswer = null;
-      _startTimer(); // Mulai timer lagi untuk pertanyaan berikutnya
+      _resetTimer(); // Mulai ulang timer untuk pertanyaan berikutnya
     } else {
       isQuizOver = true;
       _timer?.cancel();
@@ -106,6 +137,10 @@ class TestProvider extends ChangeNotifier {
       }
 
       print('Hasil kuis berhasil dikirim: ${result.data}');
+
+      // Panggil refreshQuestions untuk mendapatkan pertanyaan baru setelah submit
+      await refreshQuestions();
+
       Get.defaultDialog(
         title: "Quiz Result",
         content: Column(
@@ -127,7 +162,7 @@ class TestProvider extends ChangeNotifier {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                Get.offAllNamed(Routes.HOME);
+               Get.back();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
@@ -151,7 +186,7 @@ class TestProvider extends ChangeNotifier {
     isQuizOver = false;
     selectedAnswer = null;
     answers.clear();
-    _startTimer(); // Mulai timer lagi ketika kuis diulang
+    _resetTimer();
     notifyListeners();
   }
 

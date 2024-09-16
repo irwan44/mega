@@ -820,46 +820,6 @@ class API {
   }
 
 // Show BottomSheet for Unauthorized Access
-  static void _showUnauthorizedBottomSheet() {
-    showModalBottomSheet(
-      context: Get.context!,
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Unauthorized Access',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'You are not authorized. Please log in.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Get.offAllNamed(Routes.AUTHENTICATION);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                ),
-                child: Text('Go to Login', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
   ///bwda
   static Future<List<Question>> PretestID() async {
     try {

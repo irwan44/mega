@@ -5,7 +5,6 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../../data/data_endpoint/verifikasi.dart';
 import '../../../data/endpoint.dart';
@@ -125,14 +124,12 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                   future: _externalIdFuture,
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return LoadingAnimationWidget.newtonCradle(
-                                        color: Colors.white,
-                                        size: 70,
-                                      );
+                                      return CircularProgressIndicator();
                                     } else if (snapshot.hasError) {
                                       return Text('Error loading external ID');
                                     } else {
                                       _emailController.text = snapshot.data ?? '';
+
                                       return TextFormField(
                                         controller: _emailController,
                                         decoration: InputDecoration(
@@ -270,9 +267,8 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                       }
                                     },
                                     child: _isLoading
-                                        ? LoadingAnimationWidget.newtonCradle(
-                                      color:Colors.orange,
-                                      size: 100,
+                                        ? CircularProgressIndicator(
+                                      color: Colors.white,
                                     )
                                         : Text(
                                       'Login',
