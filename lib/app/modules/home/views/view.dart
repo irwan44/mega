@@ -153,8 +153,11 @@ class _ViewHomeState extends State<ViewHome> {
         return true;
       },
       child: Scaffold(
-        backgroundColor: Image.asset('assets/gambar/bg.png').color,
+        backgroundColor: Colors.white,
+        extendBodyBehindAppBar: false,
         appBar: AppBar(
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.white,
           title: Image.asset(
             'assets/logo/mega_insurance.png',
             height: 30,
@@ -162,7 +165,11 @@ class _ViewHomeState extends State<ViewHome> {
           centerTitle: false,
           automaticallyImplyLeading: false,
           actions: [
-            Container(
+            InkWell(
+              onTap: () {
+                _showRanksUnderDevelopmentNotifikasi();
+              },
+              child: Container(
               width: 50,
               height: 50,
               margin: const EdgeInsets.all(10),
@@ -175,6 +182,7 @@ class _ViewHomeState extends State<ViewHome> {
                 Icons.notification_important_sharp,
                 color: Colors.orange,
                 size: 18,
+                ),
               ),
             ),
           ],
@@ -507,7 +515,7 @@ class _ViewHomeState extends State<ViewHome> {
               padding: const EdgeInsets.all(10.0),
               width: 112,
               decoration: BoxDecoration(
-                color: theme.cardColor,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
@@ -595,9 +603,10 @@ class _ViewHomeState extends State<ViewHome> {
 
   void _showAccessDeniedForApproval() {
     showModalBottomSheet(
+      showDragHandle: true,
       context: context,
-      backgroundColor: Colors.white,
       elevation: 0,
+      backgroundColor: Colors.white,
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(16),
@@ -641,9 +650,10 @@ class _ViewHomeState extends State<ViewHome> {
   }
   void _showAccessDenied(String menuTitle, String testType) {
     showModalBottomSheet(
+      showDragHandle: true,
       context: context,
-      backgroundColor: Colors.white,
       elevation: 0,
+      backgroundColor: Colors.white,
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(16),
@@ -704,6 +714,48 @@ class _ViewHomeState extends State<ViewHome> {
               const SizedBox(height: 10),
               const Text(
                 'Menu "Ranks" sedang dalam pengembangan dan belum dapat diakses saat ini.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                child: const Text('OK', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  void _showRanksUnderDevelopmentNotifikasi() {
+    showModalBottomSheet(
+      showDragHandle: true,
+      context: context,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Menu Dalam Pengembangan',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Menu "Notifikasi" sedang dalam pengembangan dan belum dapat diakses saat ini.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),

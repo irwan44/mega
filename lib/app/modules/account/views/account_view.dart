@@ -109,7 +109,11 @@ class _AccountViewState extends State<AccountView> {
         return true;
       },
       child: Scaffold(
+        backgroundColor: Colors.white,
+        extendBodyBehindAppBar: false,
         appBar: AppBar(
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.white,
           title: Image.asset(
             'assets/logo/mega_insurance.png',
             height: 30,

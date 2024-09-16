@@ -132,6 +132,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
       }),
       bottomNavigationBar: Obx(() => BottomAppBar(
         elevation: 0,
+        color: Colors.white,
         child: Row(
           children: [
             if (controller.currentStep.value > 0)
@@ -200,17 +201,17 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         email: controller.emailController.text,
                         bank_account_name: controller.bankAccountNameController.text ?? '',
                         bank_account_number: controller.bankAccountNumberController.text,
-                        bank_code: controller.selectedBank.value ??'',
-                        bank_name: controller.selectedBankName.value ??'',
-                        bank_currency: controller.selectedCurency.value ??"", // Example, replace with actual value
+                        bank_code: controller.selectedBank.value ?? '',
+                        bank_name: controller.selectedBankName.value ?? '',
+                        bank_currency: controller.selectedCurency.value ?? "", // Example, replace with actual value
                         civil_id: controller.civilIdController.text,
                         tax_id: controller.taxIdController.text,
                         corporate: controller.selectedType.value ?? '',
                         salutation: controller.selectedSalutation.value ?? '',
                         zip_code: controller.zipCodeController.text,
-                        province: controller.selectedProvince.value ??'',
-                        city: controller.selectedCity.value ??'',
-                        pic: controller.PicController.text??'', // Replace with actual value
+                        province: controller.selectedProvince.value ?? '',
+                        city: controller.selectedCity.value ?? '',
+                        pic: controller.PicController.text ?? '', // Replace with actual value
                         gender: controller.selectedGender.value ?? '',
                         license_number: controller.licenseNumberController.text,
                         password: controller.passwordController.text,
@@ -238,7 +239,53 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                     } catch (e) {
                       print('Error during registration: $e');
                       if (e is dio.DioError) {
-                        print('Error response: ${e.response?.data}');
+                        // Check if the response contains error details
+                        if (e.response?.statusCode == 400 || e.response?.statusCode == 409) {
+                          var errorData = e.response?.data;
+                          // Extract specific error messages for fields
+                          String errorMessage = '';
+
+                          if (errorData != null && errorData is Map) {
+                            if (errorData.containsKey('email')) {
+                              errorMessage += 'Email sudah digunakan. ';
+                            }
+                            if (errorData.containsKey('phone_number')) {
+                              errorMessage += 'Nomor telepon sudah digunakan. ';
+                            }
+                            if (errorData.containsKey('bank_account_number')) {
+                              errorMessage += 'Nomor rekening bank sudah digunakan. ';
+                            }
+                            if (errorData.containsKey('civil_id')) {
+                              errorMessage += 'ID sipil sudah digunakan. ';
+                            }
+                            if (errorData.containsKey('tax_id')) {
+                              errorMessage += 'Nomor pajak sudah digunakan. ';
+                            }
+                          }
+
+                          // Display the appropriate error message
+                          Get.snackbar(
+                            'Gagal Registrasi',
+                            errorMessage.isNotEmpty ? errorMessage : 'Terjadi kesalahan saat registrasi.',
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                          );
+                        } else {
+                          // Handle other types of errors
+                          Get.snackbar(
+                            'Error',
+                            'Terjadi kesalahan saat registrasi',
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                          );
+                        }
+                      } else {
+                        Get.snackbar(
+                          'Error',
+                          'Terjadi kesalahan saat registrasi',
+                          backgroundColor: Colors.redAccent,
+                          colorText: Colors.white,
+                        );
                       }
                     } finally {
                       // Reset loading state
@@ -267,8 +314,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                   );
                 }
               }),
-            )
-
+            ),
           ],
         ),
       )
@@ -915,7 +961,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 labelText: 'License Number',
                 labelStyle: GoogleFonts.nunito(),
               ),
-              keyboardType: TextInputType.text,
+              keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter a valid License Number';

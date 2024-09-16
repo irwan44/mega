@@ -20,6 +20,11 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
+  // Visibility state for password fields
+  bool _isCurrentPasswordVisible = false;
+  bool _isNewPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   Future<void> _resetPassword() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() {
@@ -96,7 +101,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                     children: [
                       FadeInAnimation(
                         delay: 1.9,
-                        child:  Container(
+                        child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -111,21 +116,32 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                               ),
                             ],
                           ),
-                          child:
-                        TextFormField(
-                          controller: _currentPasswordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: 'Current password',
-                            border: InputBorder.none,
+                          child: TextFormField(
+                            controller: _currentPasswordController,
+                            obscureText: !_isCurrentPasswordVisible,
+                            decoration: InputDecoration(
+                              hintText: 'Current password',
+                              border: InputBorder.none,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isCurrentPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isCurrentPasswordVisible = !_isCurrentPasswordVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your current password';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your current password';
-                            }
-                            return null;
-                          },
-                        ),
                         ),
                       ),
                       const SizedBox(
@@ -133,7 +149,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                       ),
                       FadeInAnimation(
                         delay: 1.9,
-                        child:  Container(
+                        child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -148,21 +164,32 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                               ),
                             ],
                           ),
-                          child:
-                        TextFormField(
-                          controller: _newPasswordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: 'New password',
-                            border: InputBorder.none,
+                          child: TextFormField(
+                            controller: _newPasswordController,
+                            obscureText: !_isNewPasswordVisible,
+                            decoration: InputDecoration(
+                              hintText: 'New password',
+                              border: InputBorder.none,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isNewPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isNewPasswordVisible = !_isNewPasswordVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your new password';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your new password';
-                            }
-                            return null;
-                          },
-                        ),
                         ),
                       ),
                       const SizedBox(
@@ -170,7 +197,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                       ),
                       FadeInAnimation(
                         delay: 2.1,
-                        child:  Container(
+                        child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -185,24 +212,35 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                               ),
                             ],
                           ),
-                          child:
-                        TextFormField(
-                          controller: _confirmPasswordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: 'Confirm password',
-                            border: InputBorder.none,
+                          child: TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: !_isConfirmPasswordVisible,
+                            decoration: InputDecoration(
+                              hintText: 'Confirm password',
+                              border: InputBorder.none,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isConfirmPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please confirm your new password';
+                              }
+                              if (value != _newPasswordController.text) {
+                                return 'Passwords do not match';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please confirm your new password';
-                            }
-                            if (value != _newPasswordController.text) {
-                              return 'Passwords do not match';
-                            }
-                            return null;
-                          },
-                        ),
                         ),
                       ),
                       const SizedBox(
@@ -211,7 +249,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                       FadeInAnimation(
                         delay: 2.4,
                         child: SizedBox(
-                          width: double.infinity, // Ensures the button takes full width
+                          width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _resetPassword,
                             style: ElevatedButton.styleFrom(
@@ -240,3 +278,4 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     );
   }
 }
+

@@ -22,17 +22,30 @@ class _AuthenticationViewState extends State<AuthenticationView> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscureText = true;
-  Future<String?>? _externalIdFuture;
-  bool _isLoading = false; // Menambahkan state untuk mengelola loading
+  bool _isLoading = false;
+  bool _rememberMe = false; // New state for "Remember Me" checkbox
 
   @override
   void initState() {
     super.initState();
-    // Initialize Future to fetch external ID from local storage or API
-    _externalIdFuture = _fetchExternalId();
+    _loadCredentials(); // Load saved credentials if available
+    _fetchExternalId();
   }
 
-  Future<String?> _fetchExternalId() async {
+  Future<void> _loadCredentials() async {
+    final storage = GetStorage();
+    final savedEmail = storage.read('savedEmail') ?? '';
+    final savedPassword = storage.read('savedPassword') ?? '';
+    final rememberMe = storage.read('rememberMe') ?? false;
+
+    setState(() {
+      _emailController.text = savedEmail;
+      _passwordController.text = savedPassword;
+      _rememberMe = rememberMe;
+    });
+  }
+
+  Future<void> _fetchExternalId() async {
     final storage = GetStorage();
     try {
       final verifikasi = await API.VerifikasiID();
@@ -40,15 +53,34 @@ class _AuthenticationViewState extends State<AuthenticationView> {
 
       if (externalId != null) {
         storage.write('externalId', externalId);
-        return externalId;
+        setState(() {
+          _emailController.text = externalId!; // Update the controller's text
+        });
       } else {
         externalId = storage.read('externalId');
         print('Using saved local external ID: ${externalId ?? 'empty'}');
-        return externalId;
+        setState(() {
+          _emailController.text = externalId ?? ''; // Update the controller's text
+        });
       }
     } catch (e) {
       print('Error fetching external ID: $e');
-      return storage.read('externalId');
+      setState(() {
+        _emailController.text = storage.read('externalId') ?? ''; // Update the controller's text
+      });
+    }
+  }
+
+  Future<void> _saveCredentials() async {
+    final storage = GetStorage();
+    if (_rememberMe) {
+      storage.write('savedEmail', _emailController.text);
+      storage.write('savedPassword', _passwordController.text);
+      storage.write('rememberMe', _rememberMe);
+    } else {
+      storage.remove('savedEmail');
+      storage.remove('savedPassword');
+      storage.write('rememberMe', false);
     }
   }
 
@@ -120,49 +152,36 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                               ),
                               children: [
                                 SizedBox(height: 20),
-                                FutureBuilder<String?>(
-                                  future: _externalIdFuture,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return CircularProgressIndicator();
-                                    } else if (snapshot.hasError) {
-                                      return Text('Error loading external ID');
-                                    } else {
-                                      _emailController.text = snapshot.data ?? '';
-
-                                      return TextFormField(
-                                        controller: _emailController,
-                                        decoration: InputDecoration(
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(10.0),
-                                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(color: Colors.orange, width: 2.0),
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(10.0),
-                                          ),
-                                          focusedErrorBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(width: 1, color: Colors.grey)),
-                                          labelText: 'Profile Id',
-                                          filled: true,
-                                          fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
-                                          labelStyle: GoogleFonts.nunito(color: isDarkMode ? Colors.white70 : Colors.black54),
-                                        ),
-                                        keyboardType: TextInputType.text,
-                                        style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your email';
-                                          }
-                                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                                            return 'Enter a valid email';
-                                          }
-                                          return null;
-                                        },
-                                      );
+                                TextFormField(
+                                  controller: _emailController,
+                                  decoration: InputDecoration(
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.orange, width: 2.0),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(width: 1, color: Colors.grey)),
+                                    labelText: 'Profile Id',
+                                    filled: true,
+                                    fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                    labelStyle: GoogleFonts.nunito(color: isDarkMode ? Colors.white70 : Colors.black54),
+                                  ),
+                                  keyboardType: TextInputType.text,
+                                  style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your email';
                                     }
+                                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                                      return 'Enter a valid email';
+                                    }
+                                    return null;
                                   },
                                 ),
                                 SizedBox(height: 16),
@@ -205,6 +224,24 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                     return null;
                                   },
                                 ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Checkbox(
+                                      value: _rememberMe,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _rememberMe = value!;
+                                        });
+                                      },
+                                    ),
+                                    Text(
+                                      'Remember Me',
+                                      style: GoogleFonts.nunito(
+                                          color: isDarkMode ? Colors.white : Colors.black),
+                                    ),
+                                  ],
+                                ),
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: TextButton(
@@ -220,7 +257,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                   child: ElevatedButton(
                                     onPressed: _isLoading ? null : () async {
                                       setState(() {
-                                        _isLoading = true; // Menunjukkan status loading
+                                        _isLoading = true;
                                       });
                                       HapticFeedback.lightImpact();
                                       if (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
@@ -235,6 +272,8 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                           );
 
                                           if (token != null) {
+                                            await _saveCredentials(); // Save credentials if "Remember Me" is checked
+
                                             final verifikasi = await API.VerifikasiID();
 
                                             if (verifikasi.data?.preTest == true) {

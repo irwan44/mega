@@ -78,7 +78,10 @@ class _SettingViewState extends State<SettingView> {
 
   Future<bool> _onWillPopp() async {
     final shouldExit = await showModalBottomSheet<bool>(
+      showDragHandle: true,
       context: context,
+      elevation: 0,
+      backgroundColor: Colors.white,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
@@ -122,7 +125,7 @@ class _SettingViewState extends State<SettingView> {
         );
       },
     );
-    return shouldExit ?? false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+    return shouldExit ?? false;
   }
   @override
   void initState() {
@@ -191,100 +194,6 @@ class _SettingViewState extends State<SettingView> {
       ),
     );
   }
-
-
-  Widget _Profile() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: EdgeInsets.all(20),
-          margin: EdgeInsets.only(left: 20, right: 20),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            // color: MyColors.appPrimaryColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  ClipOval(
-                    child: Image.asset(
-                      'assets/images/profile.png',
-                      width: 70,
-                      height: 70,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "nama",
-                                style: GoogleFonts.nunito(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SvgPicture.asset(
-                                'assets/icons/edit.svg',
-                                width: 26,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          "email",
-                          style: GoogleFonts.nunito(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          "hp",
-                          style: GoogleFonts.nunito(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 10,),
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            "mandor",
-                            style: GoogleFonts.nunito(
-                              // color: MyColors.appPrimaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
 
   Widget _setting() {
     return Container(

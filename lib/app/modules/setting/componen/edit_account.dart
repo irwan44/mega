@@ -142,6 +142,7 @@ class _EditAccountState extends State<EditAccount> {
         }),
         bottomNavigationBar: Obx(() => BottomAppBar(
           elevation: 0,
+          color: Colors.white,
           child: Row(
             children: [
               if (controller.currentStep.value > 0)
@@ -374,76 +375,6 @@ class _EditAccountState extends State<EditAccount> {
               },
             ),
           ),
-          // SizedBox(height: 10),
-          // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.white,
-          //     borderRadius: BorderRadius.circular(10),
-          //   ),
-          //   child: TextFormField(
-          //     style: GoogleFonts.nunito(),
-          //     controller: controller.passwordController,
-          //     decoration: InputDecoration(
-          //       prefixIcon: Icon(Icons.password_rounded, color: Colors.orange),
-          //       border: InputBorder.none,
-          //       labelText: 'Password',
-          //       labelStyle: GoogleFonts.nunito(),
-          //       suffixIcon: IconButton(
-          //         icon: Icon(
-          //           controller.obscurePassword.value ? Icons.visibility_off : Icons.visibility,
-          //         ),
-          //         onPressed: () {
-          //           controller.obscurePassword.value = !controller.obscurePassword.value;
-          //         },
-          //       ),
-          //     ),
-          //     obscureText: controller.obscurePassword.value,
-          //     validator: (value) {
-          //       if (value == null || value.isEmpty) {
-          //         return 'Please enter your Password';
-          //       }
-          //       if (value.length < 8) {
-          //         return 'Password must be at least 8 characters long';
-          //       }
-          //       return null;
-          //     },
-          //   ),
-          // ),
-          // SizedBox(height: 10),
-          // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.white,
-          //     borderRadius: BorderRadius.circular(10),
-          //   ),
-          //   child: TextFormField(
-          //     controller: controller.passwordConfirmationController,
-          //     style: GoogleFonts.nunito(),
-          //     decoration: InputDecoration(
-          //       prefixIcon: Icon(Icons.password_rounded, color: Colors.orange),
-          //       border: InputBorder.none,
-          //       labelText: 'Confirmation Password',
-          //       labelStyle: GoogleFonts.nunito(),
-          //       suffixIcon: IconButton(
-          //         icon: Icon(
-          //           controller.obscureConfirmationPassword.value ? Icons.visibility_off : Icons.visibility,
-          //         ),
-          //         onPressed: () {
-          //           controller.obscureConfirmationPassword.value = !controller.obscureConfirmationPassword.value;
-          //         },
-          //       ),
-          //     ),
-          //     obscureText: controller.obscureConfirmationPassword.value,
-          //     validator: (value) {
-          //       if (value == null || value.isEmpty) {
-          //         return 'Please enter your Confirmation Password';
-          //       }
-          //       if (value != controller.passwordController.text) {
-          //         return 'Passwords do not match';
-          //       }
-          //       return null;
-          //     },
-          //   ),
-          // ),
           SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
@@ -921,7 +852,7 @@ class _EditAccountState extends State<EditAccount> {
                 labelText: 'License Number',
                 labelStyle: GoogleFonts.nunito(),
               ),
-              keyboardType: TextInputType.text,
+              keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter a valid License Number';
