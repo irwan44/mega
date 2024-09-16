@@ -1,10 +1,10 @@
 import 'package:bank_mega/app/modules/authentication/componen/widget/common.dart';
-import 'package:bank_mega/app/modules/authentication/componen/widget/custom.dart';
 import 'package:bank_mega/app/modules/authentication/componen/widget/fedeanimasi.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
+import '../../../data/endpoint.dart';
+import 'package:get_storage/get_storage.dart';
 
 class NewPasswordPage extends StatefulWidget {
   const NewPasswordPage({super.key});
@@ -14,6 +14,39 @@ class NewPasswordPage extends StatefulWidget {
 }
 
 class _NewPasswordPageState extends State<NewPasswordPage> {
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+
+  Future<void> _resetPassword() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await API.ResetPasswordID(
+          currentpassword: _currentPasswordController.text,
+          password: _newPasswordController.text,
+          passwordconfirmation: _confirmPasswordController.text,
+        );
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          e.toString(),
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,10 +60,10 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
               FadeInAnimation(
                 delay: 1,
                 child: IconButton(
-                    onPressed: () {
-                      Get.back();
-                    },
-                    icon: Icon(Icons.arrow_back_rounded)
+                  onPressed: () {
+                    Get.back();
+                  },
+                  icon: Icon(Icons.arrow_back_rounded),
                 ),
               ),
               Padding(
@@ -51,30 +84,125 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                         "Your new password must be unique from those previously used.",
                         style: Common().mediumThemeblack,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Form(
+                  key: _formKey,
                   child: Column(
                     children: [
-                      const FadeInAnimation(
+                      FadeInAnimation(
                         delay: 1.9,
-                        child: CustomTextFormField(
-                          hinttext: 'New password',
-                          obsecuretext: false,
+                        child:  Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.15),
+                                spreadRadius: 5,
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child:
+                        TextFormField(
+                          controller: _currentPasswordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            hintText: 'Current password',
+                            border: InputBorder.none,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your current password';
+                            }
+                            return null;
+                          },
+                        ),
                         ),
                       ),
                       const SizedBox(
                         height: 15,
                       ),
-                      const FadeInAnimation(
+                      FadeInAnimation(
+                        delay: 1.9,
+                        child:  Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.15),
+                                spreadRadius: 5,
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child:
+                        TextFormField(
+                          controller: _newPasswordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            hintText: 'New password',
+                            border: InputBorder.none,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your new password';
+                            }
+                            return null;
+                          },
+                        ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 15,
+                      ),
+                      FadeInAnimation(
                         delay: 2.1,
-                        child: CustomTextFormField(
-                          hinttext: 'Confirm password',
-                          obsecuretext: false,
+                        child:  Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.15),
+                                spreadRadius: 5,
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child:
+                        TextFormField(
+                          controller: _confirmPasswordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            hintText: 'Confirm password',
+                            border: InputBorder.none,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please confirm your new password';
+                            }
+                            if (value != _newPasswordController.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
+                        ),
                         ),
                       ),
                       const SizedBox(
@@ -82,13 +210,22 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                       ),
                       FadeInAnimation(
                         delay: 2.4,
-                        child: CustomElevatedButton(
-                          message: "Reset Password ",
-                          function: () {
-                            // GoRouter.of(context)
-                            //     .pushNamed(Routers.passwordchanges.name);
-                          },
-                          color: Colors.orange,
+                        child: SizedBox(
+                          width: double.infinity, // Ensures the button takes full width
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _resetPassword,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              _isLoading ? "Loading..." : "Reset Password",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
                         ),
                       ),
                     ],

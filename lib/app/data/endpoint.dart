@@ -29,6 +29,7 @@ class API {
   static const _urlbe = 'https://agencyapps.megainsurance.co.id';
   static const _baseUrl = '$_urlbe/api';
   static const _PostLogin = '$_baseUrl/login';
+  static const _PostResetPassword = '$_baseUrl/ubah-password';
   static const _PostRegistrasi = '$_baseUrl/register';
   static const _PostSalutations = '$_baseUrl/extra/salutations';
   static const _Postareas = '$_baseUrl/extra/areas';
@@ -111,7 +112,72 @@ class API {
       return null;
     }
   }
+//Beda
+  static Future<void> ResetPasswordID({
+    required String currentpassword,
+    required String password,
+    required String passwordconfirmation,
+  }) async {
+    final data = {
+      "current_password": currentpassword,
+      "new_password": password,
+      "new_password_confirmation": passwordconfirmation,
+    };
 
+    try {
+      final token = Publics.controller.getToken.value ?? '';
+      print('Token: $token');
+      print('Request Data: $data');
+
+      var response = await Dio().post(
+        _PostResetPassword,
+        data: data,
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        // Handle success response
+        final message = response.data['message'] ?? '';
+
+        if (message == 'Invalid token: Expired') {
+          Get.offAllNamed(Routes.HOME);
+          Get.snackbar(
+            message,
+            message,
+            backgroundColor: Colors.yellow,
+            colorText: Colors.black,
+          );
+        } else {
+          Get.snackbar(
+            'Reset Password Berhasil',
+            'Password baru anda sudah bisa digunakan',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+          Get.offAllNamed(Routes.HOME);
+        }
+      } else {
+        // Handle other server errors
+        throw Exception('Failed to reset password: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      Get.snackbar('Error', 'An error occurred: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+//Beda
   static Future<Registrasi> RegisterID({
     required String name,
     required String address,
@@ -747,11 +813,6 @@ class API {
       // Check for DioError and handle specific status code
       if (e is DioError) {
         // Check if status code is 401 and externalId is not null
-        if (e.response?.statusCode == 401) {
-          // Show BottomSheet first
-          _showUnauthorizedBottomSheet();
-          return Future.error('Unauthorized. Please log in.');
-        }
       }
       print('Error during VerifikasiID: $e');
       throw Exception('An error occurred during verification. Details: $e');

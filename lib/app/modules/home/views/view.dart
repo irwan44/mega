@@ -92,10 +92,10 @@ class _ViewHomeState extends State<ViewHome> {
       context: context,
       builder: (context) {
         return Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
           ),
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Wrap(
             children: [
               const ListTile(
@@ -108,8 +108,8 @@ class _ViewHomeState extends State<ViewHome> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
               ),
               Row(
@@ -118,7 +118,7 @@ class _ViewHomeState extends State<ViewHome> {
                   TextButton(
                     onPressed: () =>
                         Navigator.of(context).pop(false), // Jangan keluar
-                    child: Text(
+                    child: const Text(
                       'Tidak',
                       style: TextStyle(color: Colors.red),
                     ),
@@ -128,7 +128,7 @@ class _ViewHomeState extends State<ViewHome> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                     ),
-                    child: Text(
+                    child: const Text(
                       'Ya',
                       style: TextStyle(color: Colors.white),
                     ),
@@ -140,7 +140,7 @@ class _ViewHomeState extends State<ViewHome> {
         );
       },
     );
-    return shouldExit ?? false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+    return shouldExit ?? false;
   }
 
   @override
@@ -200,7 +200,7 @@ class _ViewHomeState extends State<ViewHome> {
                         ),
                       ),
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           height: 170,
                         ),
                         Container(
@@ -283,7 +283,7 @@ class _ViewHomeState extends State<ViewHome> {
                         bottomLeft: Radius.circular(10),
                         topLeft: Radius.circular(10),
                       ),
-                      image: DecorationImage(
+                      image: const DecorationImage(
                         image: AssetImage('assets/gambar/bg_quiz.png'),
                         fit: BoxFit.fill, // Adjust this as needed
                       ),
@@ -335,7 +335,7 @@ class _ViewHomeState extends State<ViewHome> {
                             }
                           },
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                       ],
                     ),
                   ),
@@ -430,44 +430,38 @@ class _ViewHomeState extends State<ViewHome> {
           double scorePercentage = 0.0;
           String testType = '';
 
+          // Load user profile to check the account status
+          final userProfile = await _loadUserProfile();
+          final accountStatus = userProfile?.data?.accountStatus ?? -1;
+
           if (title == 'Test') {
-            // Mengambil skor dari Pre-Test
-            final quizScore = await _loadQuizScore(); // Ganti ke _loadPreTestScore()
-            final totalQuestions = quizScore?['total'] ?? 0;
-            final correctAnswers = quizScore?['score'] ?? 0;
-            scorePercentage = (totalQuestions > 0) ? (correctAnswers / totalQuestions) * 100 : 0;
-            testType = 'Pre-Test';
-            print('Test Menu: Correct Answers = $correctAnswers, Total Questions = $totalQuestions, Score Percentage = ${scorePercentage.toStringAsFixed(2)}%');
+            // Ensure user account is "Approved" before allowing access
+            if (accountStatus == 2) { // Account is Approved
+              _showTestInstructions();
+            } else {
+              _showAccessDeniedForApproval();
+            }
           } else if (title == 'Create' || title == 'Renew') {
-            // Mengambil skor dari Post-Test
+            // Access to 'Create' or 'Renew' based on post-test score
             final testQuizScore = await _loadTestQuizScore();
             final totalQuestions = testQuizScore?['total'] ?? 0;
             final correctAnswers = testQuizScore?['score'] ?? 0;
             scorePercentage = (totalQuestions > 0) ? (correctAnswers / totalQuestions) * 100 : 0;
             testType = 'Post-Test';
-          }
-
-          print('Title: $title');
-          print('Score Percentage: ${scorePercentage.toStringAsFixed(2)}%');
-
-          if (title == 'Ranks') {
-            _showRanksUnderDevelopment(); // Menampilkan BottomSheet untuk Ranks
-          } else if (title == 'Reminder') {
-            Get.toNamed(Routes.REMINDER);
-          } else if (title == 'Create' || title == 'Renew') {
+            print('Title: $title');
+            print('Score Percentage: ${scorePercentage.toStringAsFixed(2)}%');
+            // Check the post-test score for access
             if (scorePercentage >= 80) {
               Get.toNamed(title == 'Create' ? Routes.WebView : Routes.RENEW);
             } else {
               _showAccessDenied(title, testType);
             }
+          } else if (title == 'Ranks') {
+            _showRanksUnderDevelopment();
+          } else if (title == 'Reminder') {
+            Get.toNamed(Routes.REMINDER);
           } else if (title == 'Learning') {
             Get.toNamed(Routes.LEARNING);
-          } else if (title == 'Test') {
-            if (scorePercentage >= 80) {
-              _showTestInstructions();
-            } else {
-              _showAccessDenied(title, testType);
-            }
           }
         },
         child: Column(
@@ -510,6 +504,7 @@ class _ViewHomeState extends State<ViewHome> {
     );
   }
 
+
   void _showTestInstructions() {
     showModalBottomSheet(
       showDragHandle: true,
@@ -518,7 +513,7 @@ class _ViewHomeState extends State<ViewHome> {
       backgroundColor: Colors.white,
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -528,8 +523,8 @@ class _ViewHomeState extends State<ViewHome> {
                 height: 100, // Sesuaikan tinggi gambar sesuai kebutuhan
               ),
               const SizedBox(height: 10),
-              Text(
-                'Instruksi untuk Post-Test',
+              const Text(
+                'Instruksi untuk Mengakses Menu Test',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -537,20 +532,20 @@ class _ViewHomeState extends State<ViewHome> {
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
-                'Anda akan mengerjakan Post-Test karena hasil Pre-Test Anda di atas 80%. Mohon perhatikan setiap pertanyaan yang diberikan dengan seksama dan jawablah dengan sebaik-baiknya.',
+              const Text(
+                'Selamat! Status akun Anda telah disetujui, dan Anda sekarang dapat mengakses menu "Test". Pastikan Anda siap untuk menjawab setiap pertanyaan dengan cermat dan teliti. Perhatikan baik-baik setiap instruksi yang diberikan, dan berusahalah sebaik mungkin untuk mencapai hasil terbaik.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                Get.toNamed(Routes.TESTPAGE);
+                  Get.toNamed(Routes.TESTPAGE);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                 ),
-                child: Text('OK', style: TextStyle(color: Colors.white)),
+                child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -560,6 +555,93 @@ class _ViewHomeState extends State<ViewHome> {
   }
 
 
+  void _showAccessDeniedForApproval() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/gambar/login_failed.png', // Update this with your asset path
+                height: 100,
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Akses Ditolak',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Anda tidak dapat mengakses menu ini karena status akun Anda belum disetujui.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                child: const Text('OK', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  void _showAccessDenied(String menuTitle, String testType) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Akses Ditolak',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Anda tidak dapat mengakses menu "$menuTitle" karena hasil $testType Anda di bawah 80%.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                child: const Text('OK', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   void _showRanksUnderDevelopment() {
     showModalBottomSheet(
@@ -569,11 +651,11 @@ class _ViewHomeState extends State<ViewHome> {
       backgroundColor: Colors.white,
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'Menu Dalam Pengembangan',
                 style: TextStyle(
                   fontSize: 18,
@@ -582,7 +664,7 @@ class _ViewHomeState extends State<ViewHome> {
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
+              const Text(
                 'Menu "Ranks" sedang dalam pengembangan dan belum dapat diakses saat ini.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
@@ -595,7 +677,7 @@ class _ViewHomeState extends State<ViewHome> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                 ),
-                child: Text('OK', style: TextStyle(color: Colors.white)),
+                child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -603,60 +685,13 @@ class _ViewHomeState extends State<ViewHome> {
       },
     );
   }
-
-
-
-
-  void _showAccessDenied(String menuTitle, String testType) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Akses Ditolak',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Anda tidak dapat mengakses menu "$menuTitle" karena hasil $testType Anda di bawah 80%.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                ),
-                child: Text('OK', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-
   void _onRefresh() async {
-    await Future.delayed(Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 1000));
     _refreshController.refreshCompleted();
   }
 
   void _onLoading() async {
-    await Future.delayed(Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 1000));
     _refreshController.loadComplete();
   }
 }

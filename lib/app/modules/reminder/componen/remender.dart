@@ -36,7 +36,10 @@ class AddNoteView extends StatelessWidget {
       bottomNavigationBar: Container(
         color: Colors.white,
         padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
+        child: SizedBox(
+          height: 45,
+          child:
+        ElevatedButton(
           onPressed: () {
             final title = titleController.text;
             final note = noteController.text;
@@ -74,9 +77,9 @@ class AddNoteView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 15),
           ),
           child: Text(index == null ? 'Save Reminder' : 'Update Reminder',
-              style: const TextStyle(fontSize: 18, color: Colors.white)),
+              style: const TextStyle(fontSize: 14, color: Colors.white)),
         ),
-
+        ),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
