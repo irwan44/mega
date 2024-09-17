@@ -209,6 +209,7 @@ class API {
     required File? siup,
     required File? profile_picture,
   }) async {
+    // Prepare form data
     final formData = dio.FormData.fromMap({
       "name": name,
       "address": address,
@@ -233,6 +234,7 @@ class API {
       "license_number": license_number,
       "password": password,
       "password_confirmation": password_confirmation,
+      // Attach files if they exist
       "civil_id_card": civil_id_card != null
           ? await dio.MultipartFile.fromFile(
         civil_id_card.path,
@@ -275,6 +277,7 @@ class API {
       final token = Publics.controller.getTokenRegis.value ?? '';
       print('Token: $token');
 
+      // Make the API request
       var response = await dio.Dio().post(
         _PostRegistrasi,
         data: formData,
@@ -304,34 +307,24 @@ class API {
           );
           return Registrasi(id: response.data['data']['id'], token: token);
         } else {
-          Get.snackbar(
-            'Error',
-            'Token tidak ditemukan dalam respons',
-            backgroundColor: Colors.redAccent,
-            colorText: Colors.white,
-          );
           throw Exception('Token tidak ditemukan dalam respons');
         }
       } else {
-        Get.snackbar(
-          'Error',
-          'Terjadi kesalahan saat registrasi',
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
-        throw Exception('Kesalahan saat registrasi');
+        // Handle non-200 response
+        throw Exception('Kesalahan saat registrasi: ${response.data['message']}');
       }
     } catch (e) {
       print('Error: $e');
       Get.snackbar(
-        'Gagal Registrasi',
-        'Terjadi kesalahan saat registrasi: $e',
+        'Error',
+        'Terjadi kesalahan saat mengirim data: $e',
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
       throw e;
     }
   }
+
 
 //Beda
   static Future<Salutations> SalutationsID() async {

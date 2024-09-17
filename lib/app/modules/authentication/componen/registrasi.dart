@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:pdf_render/pdf_render.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/data_endpoint/Salutations.dart';
@@ -18,6 +19,7 @@ import '../../../data/data_endpoint/area.dart';
 import '../../../data/data_endpoint/bank.dart';
 import '../../../data/data_endpoint/curency.dart';
 import '../../../data/data_endpoint/provinsi.dart';
+import '../../../data/data_endpoint/registrasi.dart';
 import '../../../data/endpoint.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/authentication_controller.dart';
@@ -188,6 +190,38 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                       // Prepare data for API request
                       String dateOfBirth = DateFormat('yyyy-MM-dd').format(controller.selectedDate.value ?? DateTime.now());
 
+                      // Print values being sent to the API
+                      print('Sending the following data to the API:');
+                      print('Name: ${controller.nameController.text}');
+                      print('Address: ${controller.addressController.text}');
+                      print('Place of Birth: ${controller.placeOfBirthController.text}');
+                      print('Date of Birth: $dateOfBirth');
+                      print('Phone Number: ${controller.phoneNumberController.text}');
+                      print('Email: ${controller.emailController.text}');
+                      print('Bank Account Name: ${controller.bankAccountNameController.text}');
+                      print('Bank Account Number: ${controller.bankAccountNumberController.text}');
+                      print('Bank Code: ${controller.selectedBank.value}');
+                      print('Bank Name: ${controller.selectedBankName.value}');
+                      print('Bank Currency: ${controller.selectedCurency.value}');
+                      print('Civil ID: ${controller.civilIdController.text}');
+                      print('Tax ID: ${controller.taxIdController.text}');
+                      print('Corporate: ${controller.selectedType.value}');
+                      print('Salutation: ${controller.selectedSalutation.value}');
+                      print('ZIP Code: ${controller.zipCodeController.text}');
+                      print('Province: ${controller.selectedProvince.value}');
+                      print('City: ${controller.selectedCity.value}');
+                      print('PIC: ${controller.PicController.text}');
+                      print('Gender: ${controller.selectedGender.value}');
+                      print('License Number: ${controller.licenseNumberController.text}');
+                      print('Password: ${controller.passwordController.text}');
+                      print('Password Confirmation: ${controller.passwordConfirmationController.text}');
+                      print('Civil ID Card: ${controller.civilIdCard.value?.path}');
+                      print('Tax ID Card: ${controller.taxIdCard.value?.path}');
+                      print('License AAUI: ${controller.licenseAaui.value?.path}');
+                      print('Saving Book: ${controller.savingBook.value?.path}');
+                      print('SIUP: ${controller.siup.value?.path}');
+                      print('Profile Picture: ${controller.profilePicture.value?.path}');
+
                       // Set loading state to true
                       controller.isLoading.value = true;
 
@@ -203,7 +237,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         bank_account_number: controller.bankAccountNumberController.text,
                         bank_code: controller.selectedBank.value ?? '',
                         bank_name: controller.selectedBankName.value ?? '',
-                        bank_currency: controller.selectedCurency.value ?? "", // Example, replace with actual value
+                        bank_currency: controller.selectedCurency.value ?? "",
                         civil_id: controller.civilIdController.text,
                         tax_id: controller.taxIdController.text,
                         corporate: controller.selectedType.value ?? '',
@@ -211,7 +245,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         zip_code: controller.zipCodeController.text,
                         province: controller.selectedProvince.value ?? '',
                         city: controller.selectedCity.value ?? '',
-                        pic: controller.PicController.text ?? '', // Replace with actual value
+                        pic: controller.PicController.text ?? '',
                         gender: controller.selectedGender.value ?? '',
                         license_number: controller.licenseNumberController.text,
                         password: controller.passwordController.text,
@@ -239,42 +273,46 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                     } catch (e) {
                       print('Error during registration: $e');
                       if (e is dio.DioError) {
-                        // Check if the response contains error details
-                        if (e.response?.statusCode == 400 || e.response?.statusCode == 409) {
-                          var errorData = e.response?.data;
-                          // Extract specific error messages for fields
-                          String errorMessage = '';
+                        // Check for 422 error response
+                        if (e.response?.statusCode == 422) {
+                          try {
+                            // Access the raw response data directly
+                            final responseData = e.response?.data;
+                            String errorMessage = '';
 
-                          if (errorData != null && errorData is Map) {
-                            if (errorData.containsKey('email')) {
-                              errorMessage += 'Email sudah digunakan. ';
+                            if (responseData is Map<String, dynamic>) {
+                              // Check if there is a 'message' in the response
+                              if (responseData.containsKey('message')) {
+                                errorMessage = responseData['message'];
+                              }
+
+                              // Check if there is a 'data' field and it is a List
+                              if (responseData['data'] != null && responseData['data'] is List) {
+                                List<dynamic> dataList = responseData['data'];
+                                errorMessage += '\n' + dataList.join('\n');
+                              }
                             }
-                            if (errorData.containsKey('phone_number')) {
-                              errorMessage += 'Nomor telepon sudah digunakan. ';
-                            }
-                            if (errorData.containsKey('bank_account_number')) {
-                              errorMessage += 'Nomor rekening bank sudah digunakan. ';
-                            }
-                            if (errorData.containsKey('civil_id')) {
-                              errorMessage += 'ID sipil sudah digunakan. ';
-                            }
-                            if (errorData.containsKey('tax_id')) {
-                              errorMessage += 'Nomor pajak sudah digunakan. ';
-                            }
+
+                            // Show the error message in the snackbar
+                            Get.snackbar(
+                              'Registration Failed',
+                              errorMessage,
+                              backgroundColor: Colors.redAccent,
+                              colorText: Colors.white,
+                            );
+                          } catch (e) {
+                            print('Error parsing error response: $e');
+                            Get.snackbar(
+                              'Error',
+                              'Terjadi kesalahan saat parsing error response',
+                              backgroundColor: Colors.redAccent,
+                              colorText: Colors.white,
+                            );
                           }
-
-                          // Display the appropriate error message
-                          Get.snackbar(
-                            'Gagal Registrasi',
-                            errorMessage.isNotEmpty ? errorMessage : 'Terjadi kesalahan saat registrasi.',
-                            backgroundColor: Colors.redAccent,
-                            colorText: Colors.white,
-                          );
                         } else {
-                          // Handle other types of errors
                           Get.snackbar(
                             'Error',
-                            'Terjadi kesalahan saat registrasi',
+                            'Terjadi kesalahan yang tidak diketahui',
                             backgroundColor: Colors.redAccent,
                             colorText: Colors.white,
                           );
@@ -293,8 +331,8 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                     }
                   } else {
                     Get.snackbar(
-                      'Gagal Registrasi',
-                      'Semua bidang harus diisi',
+                      'Form Error',
+                      'Please fill all the required forms correctly.',
                       backgroundColor: Colors.redAccent,
                       colorText: Colors.white,
                     );
@@ -315,6 +353,10 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 }
               }),
             ),
+
+
+
+
           ],
         ),
       )
@@ -714,7 +756,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                       decoration: InputDecoration(
                         prefixIcon: Icon(Icons.person, color: Colors.orange),
                         border: InputBorder.none,
-                        labelText: 'Corporate Info',
+                        labelText: 'PIC',
                         labelStyle: GoogleFonts.nunito(),
                       ),
                     ),
@@ -1318,11 +1360,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
             label: 'Photo License / License Certificate',
             imageFile: controller.licenseAaui,
           ),
-          if (controller.selectedType.value == '0')
+          if (controller.selectedType.value == '1')
             _buildImageUploadField(
               controller: controller,
               fieldName: 'siup',
-              label: '',
+              label: 'Upload Business Permit',
               imageFile: controller.siup,
             ),
           _buildImageUploadField(
@@ -1338,6 +1380,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
 
 
 
+
   Widget _buildImageUploadField({
     required AuthenticationController controller,
     required String fieldName,
@@ -1345,44 +1388,111 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
     required Rx<File?> imageFile,
   }) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.nunito()),
+        Text(
+          label,
+          style: GoogleFonts.nunito(),
+        ),
         GestureDetector(
           onTap: () => controller.showImageSourceDialog(fieldName),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300),
             ),
             width: double.infinity,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  imageFile.value != null
-                      ? Image.file(
-                    imageFile.value!,
-                    width: 300,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  )
-                      : Icon(Icons.camera_alt, size: 100, color: Colors.grey),
-                  SizedBox(height: 8),
+                  Obx(() {
+                    if (imageFile.value != null) {
+                      return _buildFilePreview(imageFile.value!, controller);
+                    } else {
+                      return Icon(
+                        Icons.camera_alt,
+                        size: 100,
+                        color: Colors.grey,
+                      );
+                    }
+                  }),
+                  const SizedBox(height: 8),
                   Text(
-                    imageFile.value != null ? 'Change Photo' : 'Upload Photo',
-                    style: GoogleFonts.nunito(fontSize: 16, color: Colors.blue),
+                    imageFile.value != null ? 'Change File' : 'Upload File',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      color: Colors.blue,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
       ],
     );
   }
+
+  Widget _buildFilePreview(File file, AuthenticationController controller) {
+    if (file.path.endsWith('.pdf')) {
+      return FutureBuilder<PdfPageImage?>(
+        future: controller.renderPdfPage(file),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return Text(
+              'Error loading PDF preview',
+              style: TextStyle(color: Colors.red),
+            );
+          } else if (!snapshot.hasData || snapshot.data == null) {
+            return Text(
+              'No preview available',
+              style: TextStyle(color: Colors.grey),
+            );
+          } else {
+            // Use Image.memory to display the bytes of the image
+            return Image.memory(
+              snapshot.data! as Uint8List, // Convert the ByteData to Uint8List
+              width: 300,
+              height: 200,
+              fit: BoxFit.cover,
+            );
+          }
+        },
+      );
+    } else {
+      return Image.file(
+        file,
+        width: 300,
+        height: 200,
+        fit: BoxFit.cover,
+      );
+    }
+  }
+
+
+
+  Future<PdfPageImage?> renderPdfPage(File file) async {
+    try {
+      final pdfDocument = await PdfDocument.openFile(file.path);
+      final page = await pdfDocument.getPage(1);
+
+      final pageImage = await page.render(
+        width: page.width.toInt(),
+        height: page.height.toInt(),
+      );
+
+      return pageImage;
+    } catch (e) {
+      print('Error rendering PDF page: $e');
+      return null;
+    }
+  }
+
 
 
 }

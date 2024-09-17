@@ -1,19 +1,22 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pdf_render/pdf_render.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:image/image.dart' as img;
 import '../../../data/localstorage.dart';
 
 class AuthenticationController extends GetxController {
   // Stepper state
-
   var currentStep = 0.obs;
   var selectedDate = Rx<DateTime?>(null);
   RxBool isLoading = false.obs;
+
   // Form keys
   final formKey1 = GlobalKey<FormState>();
   final formKey2 = GlobalKey<FormState>();
@@ -68,13 +71,16 @@ class AuthenticationController extends GetxController {
   var siup = Rx<File?>(null);
   var profilePicture = Rx<File?>(null);
 
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void onInit() {
     super.onInit();
-    requestGalleryPermission();
+    requestPermissions();
     loadStoredEmail();
     loadStoredExternalId();
   }
+
   Future<void> loadStoredExternalId() async {
     final prefs = await SharedPreferences.getInstance();
     String? externalId = prefs.getString('external_id');
@@ -83,7 +89,6 @@ class AuthenticationController extends GetxController {
     }
   }
 
-  // Add a method to save `external_id` (if needed)
   Future<void> saveExternalId(String externalId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('external_id', externalId);
@@ -100,18 +105,25 @@ class AuthenticationController extends GetxController {
     await LocalStorages.setEmail(emailController.text);
   }
 
-  Future<void> requestGalleryPermission() async {
-    var status = await Permission.photos.status;
+  Future<void> requestPermissions() async {
+    var statusStorage = await Permission.storage.status;
+    var statusPhotos = await Permission.photos.status;
 
-    if (!status.isGranted) {
-      status = await Permission.photos.request();
-      if (!status.isGranted) {
+    if (!statusStorage.isGranted || !statusPhotos.isGranted) {
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.storage,
+        Permission.photos,
+      ].request();
+
+      if (statuses[Permission.storage] != PermissionStatus.granted ||
+          statuses[Permission.photos] != PermissionStatus.granted) {
         Get.snackbar(
           'Permission Denied',
-          'Please allow gallery access to use this feature.',
+          'Please allow storage and gallery access to use this feature.',
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
         );
+        return;
       }
     }
   }
@@ -130,10 +142,8 @@ class AuthenticationController extends GetxController {
     }
   }
 
-  final ImagePicker _picker = ImagePicker();
-
   Future<void> showImageSourceDialog(String field) async {
-    // Show dialog to choose between camera and gallery
+    // Show dialog to choose between camera, gallery, and PDF
     await Get.dialog(
       AlertDialog(
         title: Text('Choose Image Source'),
@@ -156,70 +166,48 @@ class AuthenticationController extends GetxController {
                 pickImage(ImageSource.gallery, field);
               },
             ),
+            ListTile(
+              leading: Icon(Icons.picture_as_pdf),
+              title: Text('Pick PDF'),
+              onTap: () {
+                Navigator.of(Get.context!).pop();
+                pickAndConvertPdf(field);
+              },
+            ),
           ],
         ),
       ),
     );
   }
+  Future<PdfPageImage?> renderPdfPage(File file) async {
+    try {
+      // Open the PDF document
+      final pdfDocument = await PdfDocument.openFile(file.path);
+
+      // Get the first page of the PDF
+      final page = await pdfDocument.getPage(1);
+
+      // Render the page to an image
+      final pageImage = await page.render(
+        width: page.width.toInt(),
+        height: page.height.toInt(),
+      );
+
+      // Ensure the page is released after use
+
+      return pageImage;
+    } catch (e) {
+      print('Error rendering PDF page: $e');
+      return null;
+    }
+  }
 
   Future<void> pickImage(ImageSource source, String field) async {
-    final permissionStatus = await Permission.photos.status;
-
-    if (permissionStatus.isDenied) {
-      // Request permission
-      final newStatus = await Permission.photos.request();
-      if (!newStatus.isGranted) {
-        Get.snackbar(
-          'Permission Denied',
-          'Please grant gallery access in your device settings.',
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
-        return;
-      }
-    } else if (permissionStatus.isPermanentlyDenied) {
-      Get.snackbar(
-        'Permission Permanently Denied',
-        'Please enable gallery access in your device settings.',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
-      return;
-    }
-
     try {
-      // Proceed with picking the image
       final pickedFile = await _picker.pickImage(source: source);
       if (pickedFile != null) {
         File file = File(pickedFile.path);
-        switch (field) {
-          case 'profilePicture':
-            profilePicture.value = file;
-            break;
-          case 'civilIdCard':
-            civilIdCard.value = file;
-            break;
-          case 'taxIdCard':
-            taxIdCard.value = file;
-            break;
-          case 'licenseAaui':
-            licenseAaui.value = file;
-            break;
-          case 'savingBook':
-            savingBook.value = file;
-            break;
-          case 'siup':
-            siup.value = file;
-            break;
-          default:
-            Get.snackbar(
-              'Invalid Field',
-              'The specified field is not valid for image upload.',
-              backgroundColor: Colors.redAccent,
-              colorText: Colors.white,
-            );
-            break;
-        }
+        assignFileToField(file, field);
       }
     } catch (e) {
       Get.snackbar(
@@ -228,6 +216,97 @@ class AuthenticationController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+    }
+  }
+
+  Future<void> pickAndConvertPdf(String field) async {
+    try {
+      // Allow the user to pick a PDF file
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        // Load the selected PDF file
+        File pdfFile = File(result.files.single.path!);
+        final pdfDocument = await PdfDocument.openFile(pdfFile.path);
+
+        // Render the first page of the PDF to an image
+        final page = await pdfDocument.getPage(1);
+        final pageImage = await page.render(
+          width: page.width.toInt(),
+          height: page.height.toInt(),
+        );
+
+        if (pageImage != null) {
+          // Convert raw pixel data (RGBA) to a compatible image format
+          final img.Image image = img.Image.fromBytes(
+            width: pageImage.width, // Width of the image
+            height: pageImage.height, // Height of the image
+            bytes: pageImage.pixels.buffer, // Convert ByteBuffer to Uint8List
+          );
+
+          // Create a unique file path for the JPEG file
+          String filePath = '${pdfFile.path.replaceAll('.pdf', '')}.jpg';
+
+          // Encode the image to JPEG format
+          final jpgBytes = img.encodeJpg(image);
+          final jpgFile = File(filePath);
+          await jpgFile.writeAsBytes(jpgBytes);
+
+          // Print confirmation message
+          print('PDF has been successfully converted to JPEG: ${jpgFile.path}');
+
+          // Assign the JPEG file to the correct field
+          assignFileToField(jpgFile, field);
+        } else {
+          print('Failed to render PDF page to an image.');
+        }
+      } else {
+        print('No PDF file was selected.');
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'An error occurred while picking or converting the PDF: ${e.toString()}',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      print('An error occurred: $e');
+    }
+  }
+
+
+
+  void assignFileToField(File file, String field) {
+    switch (field) {
+      case 'profilePicture':
+        profilePicture.value = file;
+        break;
+      case 'civilIdCard':
+        civilIdCard.value = file;
+        break;
+      case 'taxIdCard':
+        taxIdCard.value = file;
+        break;
+      case 'licenseAaui':
+        licenseAaui.value = file;
+        break;
+      case 'savingBook':
+        savingBook.value = file;
+        break;
+      case 'siup':
+        siup.value = file;
+        break;
+      default:
+        Get.snackbar(
+          'Invalid Field',
+          'The specified field is not valid for image upload.',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        break;
     }
   }
 
