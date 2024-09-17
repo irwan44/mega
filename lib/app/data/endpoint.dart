@@ -315,12 +315,12 @@ class API {
       }
     } catch (e) {
       print('Error: $e');
-      Get.snackbar(
-        'Error',
-        'Terjadi kesalahan saat mengirim data: $e',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Terjadi kesalahan saat mengirim data: $e',
+      //   backgroundColor: Colors.redAccent,
+      //   colorText: Colors.white,
+      // );
       throw e;
     }
   }

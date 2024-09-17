@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pdf_render/pdf_render.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart' show rootBundle; // Tambahkan ini
+import 'package:path_provider/path_provider.dart'; // Tambahkan ini
 import 'package:image/image.dart' as img;
 import '../../../data/localstorage.dart';
 
@@ -16,7 +18,6 @@ class AuthenticationController extends GetxController {
   var currentStep = 0.obs;
   var selectedDate = Rx<DateTime?>(null);
   RxBool isLoading = false.obs;
-
   // Form keys
   final formKey1 = GlobalKey<FormState>();
   final formKey2 = GlobalKey<FormState>();
@@ -58,6 +59,7 @@ class AuthenticationController extends GetxController {
   final civilIdController = TextEditingController();
   final taxIdController = TextEditingController();
   final OTPController = TextEditingController();
+
   // Bank information controllers
   var selectedBank = Rx<String?>(null);
   final bankAccountNumberController = TextEditingController();
@@ -79,6 +81,23 @@ class AuthenticationController extends GetxController {
     requestPermissions();
     loadStoredEmail();
     loadStoredExternalId();
+    loadDefaultSiup(); // Panggil untuk memuat file default
+  }
+
+  // Fungsi untuk memuat file default dari aset
+  Future<void> loadDefaultSiup() async {
+    try {
+      // Muat file dari aset
+      final ByteData data = await rootBundle.load('assets/gambar/default.jpg');
+      final Directory tempDir = await getTemporaryDirectory();
+      final File file = File('${tempDir.path}/default.jpg');
+      await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
+
+      // Set file default ke variabel siup
+      siup.value = file;
+    } catch (e) {
+      print('Error loading default SIUP file: $e');
+    }
   }
 
   Future<void> loadStoredExternalId() async {
@@ -117,12 +136,6 @@ class AuthenticationController extends GetxController {
 
       if (statuses[Permission.storage] != PermissionStatus.granted ||
           statuses[Permission.photos] != PermissionStatus.granted) {
-        Get.snackbar(
-          'Permission Denied',
-          'Please allow storage and gallery access to use this feature.',
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
         return;
       }
     }
@@ -143,7 +156,7 @@ class AuthenticationController extends GetxController {
   }
 
   Future<void> showImageSourceDialog(String field) async {
-    // Show dialog to choose between camera, gallery, and PDF
+    // Dialog untuk memilih sumber gambar
     await Get.dialog(
       AlertDialog(
         title: Text('Choose Image Source'),
@@ -179,6 +192,7 @@ class AuthenticationController extends GetxController {
       ),
     );
   }
+
   Future<PdfPageImage?> renderPdfPage(File file) async {
     try {
       // Open the PDF document
@@ -187,13 +201,16 @@ class AuthenticationController extends GetxController {
       // Get the first page of the PDF
       final page = await pdfDocument.getPage(1);
 
-      // Render the page to an image
-      final pageImage = await page.render(
-        width: page.width.toInt(),
-        height: page.height.toInt(),
-      );
+      // Desired DPI for higher quality
+      final int targetDpi = 300; // Adjust this value for higher or lower quality
+      final double scale = targetDpi / 72.0; // 72 is the default DPI for PDF
 
-      // Ensure the page is released after use
+      // Render the page to an image with higher DPI
+      final pageImage = await page.render(
+        width: (page.width * scale).toInt(), // Convert to int for width
+        height: (page.height * scale).toInt(), // Convert to int for height
+        backgroundFill: true, // Set backgroundFill to true or false as needed
+      );
 
       return pageImage;
     } catch (e) {
@@ -201,6 +218,8 @@ class AuthenticationController extends GetxController {
       return null;
     }
   }
+
+
 
   Future<void> pickImage(ImageSource source, String field) async {
     try {
@@ -221,45 +240,40 @@ class AuthenticationController extends GetxController {
 
   Future<void> pickAndConvertPdf(String field) async {
     try {
-      // Allow the user to pick a PDF file
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
 
       if (result != null && result.files.single.path != null) {
-        // Load the selected PDF file
         File pdfFile = File(result.files.single.path!);
-        final pdfDocument = await PdfDocument.openFile(pdfFile.path);
+        final document = await PdfDocument.openFile(pdfFile.path);
 
-        // Render the first page of the PDF to an image
-        final page = await pdfDocument.getPage(1);
+        // Render the first page of the PDF with its original size
+        final page = await document.getPage(1);
+
+        // Render the page using its original width and height
         final pageImage = await page.render(
           width: page.width.toInt(),
           height: page.height.toInt(),
         );
 
         if (pageImage != null) {
-          // Convert raw pixel data (RGBA) to a compatible image format
+          // Convert to image using the original pixel buffer
           final img.Image image = img.Image.fromBytes(
-            width: pageImage.width, // Width of the image
-            height: pageImage.height, // Height of the image
-            bytes: pageImage.pixels.buffer, // Convert ByteBuffer to Uint8List
+            width: pageImage.width,
+            height: pageImage.height,
+            bytes: pageImage.pixels.buffer, // Use ByteBuffer from pixels
           );
 
-          // Create a unique file path for the JPEG file
-          String filePath = '${pdfFile.path.replaceAll('.pdf', '')}.jpg';
+          String filePath = pdfFile.path.replaceAll('.pdf', '.png');
+          final pngBytes = img.encodePng(image);
+          final pngFile = File(filePath);
+          await pngFile.writeAsBytes(pngBytes);
 
-          // Encode the image to JPEG format
-          final jpgBytes = img.encodeJpg(image);
-          final jpgFile = File(filePath);
-          await jpgFile.writeAsBytes(jpgBytes);
+          print('PDF has been successfully converted to PNG: ${pngFile.path}');
 
-          // Print confirmation message
-          print('PDF has been successfully converted to JPEG: ${jpgFile.path}');
-
-          // Assign the JPEG file to the correct field
-          assignFileToField(jpgFile, field);
+          assignFileToField(pngFile, field);
         } else {
           print('Failed to render PDF page to an image.');
         }
@@ -267,15 +281,10 @@ class AuthenticationController extends GetxController {
         print('No PDF file was selected.');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'An error occurred while picking or converting the PDF: ${e.toString()}',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
       print('An error occurred: $e');
     }
   }
+
 
 
 

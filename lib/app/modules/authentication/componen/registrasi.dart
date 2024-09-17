@@ -187,6 +187,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         return; // Exit the function if there are empty fields
                       }
 
+                      // Cek jika siup masih null, gunakan file default
+                      if (controller.siup.value == null) {
+                        await controller.loadDefaultSiup(); // Panggil fungsi untuk memuat file default
+                      }
+
                       // Prepare data for API request
                       String dateOfBirth = DateFormat('yyyy-MM-dd').format(controller.selectedDate.value ?? DateTime.now());
 
@@ -222,22 +227,20 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                       print('SIUP: ${controller.siup.value?.path}');
                       print('Profile Picture: ${controller.profilePicture.value?.path}');
 
-                      // Set loading state to true
                       controller.isLoading.value = true;
 
-                      // Make API call
-                      String? token = (await API.RegisterID(
+                      Registrasi? registrationResponse = await API.RegisterID(
                         name: controller.nameController.text,
                         address: controller.addressController.text,
                         place_of_birth: controller.placeOfBirthController.text,
                         date_of_birth: dateOfBirth,
                         phone_number: controller.phoneNumberController.text,
                         email: controller.emailController.text,
-                        bank_account_name: controller.bankAccountNameController.text ?? '',
+                        bank_account_name: controller.bankAccountNameController.text,
                         bank_account_number: controller.bankAccountNumberController.text,
                         bank_code: controller.selectedBank.value ?? '',
                         bank_name: controller.selectedBankName.value ?? '',
-                        bank_currency: controller.selectedCurency.value ?? "",
+                        bank_currency: controller.selectedCurency.value ?? '',
                         civil_id: controller.civilIdController.text,
                         tax_id: controller.taxIdController.text,
                         corporate: controller.selectedType.value ?? '',
@@ -245,7 +248,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         zip_code: controller.zipCodeController.text,
                         province: controller.selectedProvince.value ?? '',
                         city: controller.selectedCity.value ?? '',
-                        pic: controller.PicController.text ?? '',
+                        pic: controller.PicController.text,
                         gender: controller.selectedGender.value ?? '',
                         license_number: controller.licenseNumberController.text,
                         password: controller.passwordController.text,
@@ -256,44 +259,34 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         saving_book: controller.savingBook.value,
                         siup: controller.siup.value,
                         profile_picture: controller.profilePicture.value,
-                      )) as String?;
+                      );
 
                       // Handle response
-                      if (token != null) {
-                        Get.offAllNamed(Routes.AUTHENTICATION);
+                      if (registrationResponse != null && registrationResponse.data != null) {
+                        String token = registrationResponse.data!.token ?? '';
                         print("Registration successful, received token: $token");
+                        Get.offAllNamed(Routes.AUTHENTICATION);
                       } else {
-                        Get.snackbar(
-                          'Error',
-                          'Terjadi kesalahan saat registrasi',
-                          backgroundColor: Colors.redAccent,
-                          colorText: Colors.white,
-                        );
                       }
                     } catch (e) {
                       print('Error during registration: $e');
                       if (e is dio.DioError) {
-                        // Check for 422 error response
                         if (e.response?.statusCode == 422) {
                           try {
-                            // Access the raw response data directly
                             final responseData = e.response?.data;
                             String errorMessage = '';
 
                             if (responseData is Map<String, dynamic>) {
-                              // Check if there is a 'message' in the response
                               if (responseData.containsKey('message')) {
                                 errorMessage = responseData['message'];
                               }
 
-                              // Check if there is a 'data' field and it is a List
                               if (responseData['data'] != null && responseData['data'] is List) {
                                 List<dynamic> dataList = responseData['data'];
-                                errorMessage += '\n' + dataList.join('\n');
+                                // errorMessage += '\n' + dataList.join('\n');
                               }
                             }
 
-                            // Show the error message in the snackbar
                             Get.snackbar(
                               'Registration Failed',
                               errorMessage,
@@ -318,12 +311,6 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                           );
                         }
                       } else {
-                        Get.snackbar(
-                          'Error',
-                          'Terjadi kesalahan saat registrasi',
-                          backgroundColor: Colors.redAccent,
-                          colorText: Colors.white,
-                        );
                       }
                     } finally {
                       // Reset loading state
@@ -353,10 +340,6 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 }
               }),
             ),
-
-
-
-
           ],
         ),
       )
@@ -407,6 +390,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
         padding: EdgeInsets.all(16),
         children: [
           Container(
+            padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -419,17 +403,21 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'Full Name',
                 labelStyle: GoogleFonts.nunito(),
+                alignLabelWithHint: true, // Menyelaraskan label dengan hint
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your full name';
+                  return 'Please enter your full name'; // Pesan kesalahan
                 }
                 return null;
               },
             ),
           ),
+
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -442,6 +430,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'Password',
                 labelStyle: GoogleFonts.nunito(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 suffixIcon: IconButton(
                   icon: Icon(
                     controller.obscurePassword.value ? Icons.visibility_off : Icons.visibility,
@@ -465,6 +454,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -477,6 +467,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'Confirmation Password',
                 labelStyle: GoogleFonts.nunito(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 suffixIcon: IconButton(
                   icon: Icon(
                     controller.obscureConfirmationPassword.value ? Icons.visibility_off : Icons.visibility,
@@ -500,6 +491,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -514,15 +506,23 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 labelText: 'Date of Birth',
                 labelStyle: GoogleFonts.nunito(),
                 hintStyle: GoogleFonts.nunito(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 hintText: controller.selectedDate.value == null
                     ? 'Select Date of Birth'
                     : DateFormat('yyyy-MM-dd').format(controller.selectedDate.value!),
               ),
               onTap: () => controller.selectDate(DateTime.now()),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your Date of Birth';
+                }
+                return null;
+              },
             ),
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -536,6 +536,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: ' Place of birth',
                 labelStyle: GoogleFonts.nunito(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -547,79 +548,103 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.school, color: Colors.orange),
-                SizedBox(width: 15), // Spacing between icon and dropdown
-                Expanded(
-                  child: FutureBuilder<Salutations>(
-                    future: API.SalutationsID(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: LoadingAnimationWidget.newtonCradle(
-                            color: Colors.orange,
-                            size: 100,
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
-                        return Center(child: Text('No data available'));
-                      } else {
-                        // Safely extract the data
-                        List<String> salutationList = snapshot.data!.data!;
-                        print("Salutation List: $salutationList");
-
-                        // Load the saved value from local storage
-                        return FutureBuilder<String?>(
-                          future: LocalStorage.getSelectedSalutation(),
-                          builder: (context, savedSnapshot) {
-                            String? savedValue = savedSnapshot.data;
-
-                            return DropdownButtonFormField<String>(
-                              value: savedValue,
-                              hint: Text('Select Salutation', style: GoogleFonts.nunito()),
-                              items: salutationList.map((salutation) {
-                                return DropdownMenuItem<String>(
-                                  value: salutation,
-                                  child: Text(salutation, style: GoogleFonts.nunito()),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  controller.selectedSalutation.value = value;
-                                  LocalStorage.saveSelectedSalutation(value); // Save the selected value
-                                  print("Selected Salutation: ${controller.selectedSalutation.value}");
-                                }
-                              },
-                              validator: (value) {
-                                if (value == null) {
-                                  return 'Please select a Salutation';
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                border: InputBorder.none, // Remove the default border
+                Row(
+                  children: [
+                    Icon(Icons.school, color: Colors.orange),
+                    SizedBox(width: 15), // Spacing between icon and dropdown
+                    Expanded(
+                      child: FutureBuilder<Salutations>(
+                        future: API.SalutationsID(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(
+                              child: LoadingAnimationWidget.newtonCradle(
+                                color: Colors.orange,
+                                size: 100,
                               ),
                             );
-                          },
-                        );
-                      }
-                    },
-                  ),
+                          } else if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.data == null ||
+                              snapshot.data!.data!.isEmpty) {
+                            return Center(child: Text('No data available'));
+                          } else {
+                            // Safely extract the data
+                            List<String> salutationList = snapshot.data!.data!;
+                            print("Salutation List: $salutationList");
+
+                            // Load the saved value from local storage
+                            return FutureBuilder<String?>(
+                              future: LocalStorage.getSelectedSalutation(),
+                              builder: (context, savedSnapshot) {
+                                String? savedValue = savedSnapshot.data;
+
+                                return DropdownButtonFormField<String>(
+                                  value: savedValue,
+                                  hint: Text('Select Salutation',
+                                      style: GoogleFonts.nunito()),
+                                  items: salutationList.map((salutation) {
+                                    return DropdownMenuItem<String>(
+                                      value: salutation,
+                                      child: Text(salutation,
+                                          style: GoogleFonts.nunito()),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      controller.selectedSalutation.value = value;
+                                      LocalStorage.saveSelectedSalutation(
+                                          value); // Save the selected value
+                                      print(
+                                          "Selected Salutation: ${controller.selectedSalutation.value}");
+                                    }
+                                  },
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return ''; // Pesan kesalahan ditampilkan secara manual
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none, // Remove the default border
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
+                Obx(() {
+                  // Menampilkan pesan error jika validasi gagal
+                  return controller.selectedSalutation.value == null
+                      ? Padding(
+                    padding: const EdgeInsets.only(left: 1.0), // Sejajarkan dengan ikon
+                    child: Text(
+                      'Please select a Salutation',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  )
+                      : SizedBox.shrink();
+                }),
               ],
             ),
           ),
+
           SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.only(left: 20, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -656,11 +681,23 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                     ),
                   ],
                 ),
+                Obx(() {
+                  // Menampilkan pesan error jika tidak ada gender yang dipilih
+                  return controller.selectedGender.value == null
+                      ? Text(
+                    'Please select a Gender',
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  )
+                      : SizedBox.shrink();
+                }),
               ],
             ),
           ),
-          SizedBox(height: 10),
+
+    SizedBox(
+        height: 10),
           Container(
+            padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -674,6 +711,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'Email',
                 labelStyle: GoogleFonts.nunito(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -685,6 +723,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -698,6 +737,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'Phone Number',
                 labelStyle: GoogleFonts.nunito(),
+                contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -709,7 +749,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.only(left: 20, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -737,10 +777,10 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                       child: ListTile(
                         title: Text('Corporate', style: GoogleFonts.nunito()),
                         leading: Radio<String>(
-                          value: '1', // Send 1 for Corporate
+                          value: '1',
                           groupValue: controller.selectedType.value,
                           onChanged: (value) {
-                            controller.selectedType.value = value ?? '1'; // Default to '1'
+                            controller.selectedType.value = value ?? '1';
                             print("Corporate : ${controller.selectedType.value}");
                           },
                         ),
@@ -748,6 +788,15 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                     ),
                   ],
                 ),
+                Obx(() {
+                  // Menampilkan pesan error jika tidak ada gender yang dipilih
+                  return controller.selectedType.value == null
+                      ? Text(
+                    'Please select an Account Type',
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  )
+                      : SizedBox.shrink();
+                }),
                 Obx(() {
                   return Visibility(
                     visible: controller.selectedType.value == '1',
@@ -764,9 +813,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 }),
               ],
             ),
-          )
+          ),
 
-        ],
+    ],
       ),
     );
   }
@@ -778,6 +827,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
         padding: EdgeInsets.all(16),
         children: [
           Container(
+            padding: EdgeInsets.only(left: 14, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -790,182 +840,218 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'Address',
                 labelStyle: GoogleFonts.nunito(),
+                alignLabelWithHint: true, // Menyelaraskan label dengan hint
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
-              keyboardType: TextInputType.text,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your Address';
+                  return 'Please enter your Address'; // Pesan kesalahan
                 }
                 return null;
               },
             ),
           ),
-
-
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.location_city_rounded, color: Colors.orange),
-                SizedBox(width: 15),
-                Expanded(
-                  child: FutureBuilder<Provinsi>(
-                    future: API.Provincesid(), // Fetch province data
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: LoadingAnimationWidget.newtonCradle(
-                            color: Colors.orange,
-                            size: 100,
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
-                        return Center(child: Text('No data available'));
-                      } else {
-                        // Extract the province data from the dictionary
-                        Map<String, String> provinceMap = snapshot.data!.data!;
-                        List<MapEntry<String, String>> provinceEntries = provinceMap.entries.toList();
-
-                        // Print to debug
-                        print("Province Map: $provinceMap");
-
-                        return FutureBuilder<String?>(
-                          future: LocalStorage.getSelectedCity(), // Fetch saved province code
-                          builder: (context, savedSnapshot) {
-                            String? savedValue = savedSnapshot.data;
+                Row(
+                  children: [
+                    Icon(Icons.location_city_rounded, color: Colors.orange),
+                    SizedBox(width: 15),
+                    Expanded(
+                      child: FutureBuilder<Provinsi>(
+                        future: API.Provincesid(), // Fetch province data
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(
+                              child: LoadingAnimationWidget.newtonCradle(
+                                color: Colors.orange,
+                                size: 100,
+                              ),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.data == null ||
+                              snapshot.data!.data!.isEmpty) {
+                            return Center(child: Text('No data available'));
+                          } else {
+                            // Extract the province data from the dictionary
+                            Map<String, String> provinceMap = snapshot.data!.data!;
+                            List<MapEntry<String, String>> provinceEntries = provinceMap.entries.toList();
 
                             // Print to debug
-                            print("Saved Province Code: $savedValue");
+                            print("Province Map: $provinceMap");
 
-                            // Check if savedValue is in provinceMap.keys
-                            if (savedValue != null && !provinceMap.containsKey(savedValue)) {
-                              print("Warning: Saved Province Code not found in provinceMap");
-                              savedValue = null; // Reset if not found
-                            }
+                            return FutureBuilder<String?>(
+                              future: LocalStorage.getSelectedCity(), // Fetch saved province code
+                              builder: (context, savedSnapshot) {
+                                String? savedValue = savedSnapshot.data;
 
-                            return DropdownButtonFormField<String>(
-                              value: savedValue, // Set the selected value
-                              hint: Text('Select Province', style: GoogleFonts.nunito()),
-                              items: provinceEntries.map((entry) {
-                                // Print each entry to debug
-                                print("Dropdown Item: ${entry.key} - ${entry.value}");
+                                // Print to debug
+                                print("Saved Province Code: $savedValue");
 
-                                return DropdownMenuItem<String>(
-                                  value: entry.key, // Use province code as the value
-                                  child: Text(
-                                    entry.value, // Display the full province name
-                                    style: GoogleFonts.nunito(),
+                                // Check if savedValue is in provinceMap.keys
+                                if (savedValue != null &&
+                                    !provinceMap.containsKey(savedValue)) {
+                                  print("Warning: Saved Province Code not found in provinceMap");
+                                  savedValue = null; // Reset if not found
+                                }
+
+                                return DropdownButtonFormField<String>(
+                                  value: savedValue, // Set the selected value
+                                  hint: Text('Select Province', style: GoogleFonts.nunito()),
+                                  items: provinceEntries.map((entry) {
+                                    // Print each entry to debug
+                                    print("Dropdown Item: ${entry.key} - ${entry.value}");
+
+                                    return DropdownMenuItem<String>(
+                                      value: entry.key, // Use province code as the value
+                                      child: Text(
+                                        entry.value, // Display the full province name
+                                        style: GoogleFonts.nunito(),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      controller.selectedProvince.value = value;
+                                      LocalStorage.saveSelectedCity(value); // Save the selected province code
+                                      print(
+                                          "Selected Province Code: ${controller.selectedProvince.value}");
+                                    }
+                                  },
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return ''; // Return an empty string since we're handling validation manually
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none, // Remove default border
                                   ),
+                                  isExpanded: true, // Make dropdown take full width
                                 );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  controller.selectedProvince.value = value;
-                                  LocalStorage.saveSelectedCity(value); // Save the selected province code
-                                  print("Selected Province Code: ${controller.selectedProvince.value}");
-                                }
                               },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please select a Province';
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                border: InputBorder.none, // Remove default border
-                              ),
-                              isExpanded: true, // Make dropdown take full width
                             );
-                          },
-                        );
-                      }
-                    },
-                  ),
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
+                Obx(() {
+                  return controller.selectedProvince.value == null
+                      ? Padding(
+                    padding: const EdgeInsets.only(left: 1.0), // Align with the icon
+                    child: Text(
+                      'Please select a Province',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  )
+                      : SizedBox.shrink();
+                }),
               ],
             ),
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.location_city_rounded, color: Colors.orange),
-                SizedBox(width: 15),
-                Expanded(
-                  child: FutureBuilder<Area>(
-                    future: API.AreasID(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: LoadingAnimationWidget.newtonCradle(
-                            color: Colors.orange,
-                            size: 100,
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
-                        return Center(child: Text('No data available'));
-                      } else {
-                        // Extract the area data from the dictionary
-                        Map<String, String> areaMap = snapshot.data!.data!;
-                        List<String> areaIDs = areaMap.keys.toList();
-                        List<String> areaNames = areaMap.values.toList();
-
-                        return FutureBuilder<String?>(
-                          future: LocalStorage.getSelectedProvince(),
-                          builder: (context, savedSnapshot) {
-                            String? savedID = savedSnapshot.data;
-
-                            return DropdownButtonFormField<String>(
-                              value: savedID,
-                              hint: Text('Select City', style: GoogleFonts.nunito()),
-                              items: areaIDs.map((id) {
-                                return DropdownMenuItem<String>(
-                                  value: id,
-                                  child: Text(areaMap[id]!, style: GoogleFonts.nunito()), // Display the name
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  controller.selectedCity.value = value;
-                                  LocalStorage.saveSelectedProvince(value); // Save the selected ID
-                                  print("Selected City ID: ${controller.selectedCity.value}");
-                                }
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please select a City';
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                border: InputBorder.none, // Remove the default border
+                Row(
+                  children: [
+                    Icon(Icons.location_city_rounded, color: Colors.orange),
+                    SizedBox(width: 15),
+                    Expanded(
+                      child: FutureBuilder<Area>(
+                        future: API.AreasID(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(
+                              child: LoadingAnimationWidget.newtonCradle(
+                                color: Colors.orange,
+                                size: 100,
                               ),
                             );
-                          },
-                        );
-                      }
-                    },
-                  ),
+                          } else if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
+                            return Center(child: Text('No data available'));
+                          } else {
+                            // Extract the area data from the dictionary
+                            Map<String, String> areaMap = snapshot.data!.data!;
+                            List<String> areaIDs = areaMap.keys.toList();
+
+                            return FutureBuilder<String?>(
+                              future: LocalStorage.getSelectedProvince(),
+                              builder: (context, savedSnapshot) {
+                                String? savedID = savedSnapshot.data;
+
+                                return DropdownButtonFormField<String>(
+                                  value: savedID,
+                                  hint: Text('Select City', style: GoogleFonts.nunito()),
+                                  items: areaIDs.map((id) {
+                                    return DropdownMenuItem<String>(
+                                      value: id,
+                                      child: Text(areaMap[id]!, style: GoogleFonts.nunito()), // Display the name
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      controller.selectedCity.value = value;
+                                      LocalStorage.saveSelectedProvince(value); // Save the selected ID
+                                      print("Selected City ID: ${controller.selectedCity.value}");
+                                    }
+                                  },
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return ''; // Return empty string to handle validation manually
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none, // Remove the default border
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
+                Obx(() {
+                  return controller.selectedCity.value == null
+                      ? Padding(
+                    padding: const EdgeInsets.only(left: 1.0), // Align with the icon
+                    child: Text(
+                      'Please select a City',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  )
+                      : SizedBox.shrink();
+                }),
               ],
             ),
           ),
+
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 14, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -974,15 +1060,17 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.zipCodeController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.location_city, color: Colors.orange),
+                prefixIcon: Icon(Icons.map_sharp, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Zip Code',
                 labelStyle: GoogleFonts.nunito(),
+                alignLabelWithHint: true, // Menyelaraskan label dengan hint
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a valid Zip Code';
+                  return 'Please enter a valid Zip Code'; // Pesan kesalahan
                 }
                 return null;
               },
@@ -990,6 +1078,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -998,15 +1087,17 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.licenseNumberController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.numbers, color: Colors.orange),
+                prefixIcon: Icon(Icons.map_sharp, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'License Number',
                 labelStyle: GoogleFonts.nunito(),
+                alignLabelWithHint: true, // Menyelaraskan label dengan hint
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a valid License Number';
+                  return 'Please enter a valid License Number'; // Pesan kesalahan
                 }
                 return null;
               },
@@ -1014,6 +1105,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1026,6 +1118,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'NIK / Civil ID',
                 labelStyle: GoogleFonts.nunito(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
               ),
               keyboardType: TextInputType.number,
               maxLength: 16, // Limits the input to 16 characters
@@ -1046,6 +1139,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1058,6 +1152,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'NPWP / TaxID',
                 labelStyle: GoogleFonts.nunito(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
               ),
               keyboardType: TextInputType.number,
               maxLength: 16, // Limits the input to 16 characters
@@ -1087,11 +1182,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
         padding: EdgeInsets.all(16),
         children: [
           Container(
+            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
               children: [
                 Icon(Icons.monetization_on_outlined, color: Colors.orange),
@@ -1112,29 +1207,27 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                       } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
                         return Center(child: Text('No data available'));
                       } else {
-                        // Extract the currency data from the dictionary
+
                         Map<String, String> currencyMap = snapshot.data!.data!;
                         List<MapEntry<String, String>> currencyEntries = currencyMap.entries.toList();
 
-                        // Print to debug
                         print("Currency Map: $currencyMap");
 
                         return FutureBuilder<String?>(
-                          future: LocalStorage.getSelectedCurrency(), // Fetch saved currency code
+                          future: LocalStorage.getSelectedCurrency(),
                           builder: (context, savedSnapshot) {
                             String? savedValue = savedSnapshot.data;
 
-                            // Print to debug
                             print("Saved Currency Code: $savedValue");
 
-                            // Check if savedValue is in currencyMap.keys
+
                             if (savedValue != null && !currencyMap.containsKey(savedValue)) {
                               print("Warning: Saved Currency Code not found in currencyMap");
-                              savedValue = null; // Reset if not found
+                              savedValue = null;
                             }
 
                             return DropdownButtonFormField<String>(
-                              value: savedValue, // Set the selected value
+                              value: savedValue,
                               hint: Text('Select Currency', style: GoogleFonts.nunito()),
                               items: currencyEntries.map((entry) {
                                 // Print each entry to debug
@@ -1177,11 +1270,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
               children: [
                 Icon(Icons.account_balance, color: Colors.orange),
@@ -1277,6 +1370,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1289,11 +1383,13 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'Bank Account',
                 labelStyle: GoogleFonts.nunito(),
+                alignLabelWithHint: true, // Menyelaraskan label dengan hint
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a valid Bank Account';
+                  return 'Please enter a valid Bank Account'; // Pesan kesalahan
                 }
                 return null;
               },
@@ -1301,6 +1397,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           ),
           SizedBox(height: 10),
           Container(
+            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1313,11 +1410,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 border: InputBorder.none,
                 labelText: 'Bank Account Holder',
                 labelStyle: GoogleFonts.nunito(),
+                alignLabelWithHint: true, // Menyelaraskan label dengan hint
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
-              keyboardType: TextInputType.text,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a valid Bank Account Holder';
+                  return 'Please enter a valid Bank Account Holder'; // Pesan kesalahan
                 }
                 return null;
               },
