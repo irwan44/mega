@@ -3,12 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_media_downloader/flutter_media_downloader.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import '../../../data/data_endpoint/learning.dart';
 import '../../../data/endpoint.dart';
 import 'detail_learning_view.dart';
@@ -161,13 +160,9 @@ class _LearningViewState extends State<LearningView> {
   }
 
   void _onRefresh() {
-    HapticFeedback.lightImpact();
-    setState(() {
-      _refreshController.refreshCompleted();
-    });
+    _refreshController.refreshCompleted();
   }
 }
-
 
 class ShimmerLoadingCard extends StatelessWidget {
   @override
@@ -343,49 +338,51 @@ class LearningCard extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   SizedBox(height: isWideScreen ? 12.0 : 10.0),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      backgroundColor: Colors.blueAccent,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8.0),
-                                      ),
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: isWideScreen ? 12.0 : 8.0,
-                                        horizontal: isWideScreen ? 16.0 : 10.0,
-                                      ),
-                                    ),
-                                    onPressed: () async {
-                                      final url = _getFileUrl(learning.fileUpload!);
-                                      await _requestPermissions();
-                                      try {
-                                        await downloader.downloadMedia(context, url);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Download started for $url')),
-                                        );
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Could not download file')),
-                                        );
-                                      }
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.download_rounded,
-                                          size: isWideScreen ? 20 : 16,
-                                          color: Colors.white,
+                                  // Tampilkan tombol download hanya jika fileUpload tidak null dan tidak kosong
+                                  if (learning.fileUpload != null && learning.fileUpload!.isNotEmpty)
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: Colors.blueAccent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8.0),
                                         ),
-                                        SizedBox(width: isWideScreen ? 12.0 : 8.0),
-                                        Text(
-                                          'Download Attachment',
-                                          style: GoogleFonts.nunito(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: isWideScreen ? 12.0 : 8.0,
+                                          horizontal: isWideScreen ? 16.0 : 10.0,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        final url = _getFileUrl(learning.fileUpload!);
+                                        await _requestPermissions();
+                                        try {
+                                          await downloader.downloadMedia(context, url);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Download started for $url')),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Could not download file')),
+                                          );
+                                        }
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.download_rounded,
+                                            size: isWideScreen ? 20 : 16,
                                             color: Colors.white,
-                                            fontSize: isWideScreen ? 16.0 : 14.0,
                                           ),
-                                        ),
-                                      ],
+                                          SizedBox(width: isWideScreen ? 12.0 : 8.0),
+                                          Text(
+                                            'Download Attachment',
+                                            style: GoogleFonts.nunito(
+                                              color: Colors.white,
+                                              fontSize: isWideScreen ? 16.0 : 14.0,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
@@ -469,5 +466,3 @@ class LearningCard extends StatelessWidget {
     return htmlString.replaceAll(regex, '');
   }
 }
-
-

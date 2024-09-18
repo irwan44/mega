@@ -72,6 +72,7 @@ dependencies:
   progress_state_button: ^1.0.4
   quickalert: ^1.1.0
   awesome_dialog: ^3.2.0
+  html: ^0.15.4
   bottom_picker: ^2.6.0
   search_choices: ^2.2.7
   animated_custom_dropdown: ^3.0.0

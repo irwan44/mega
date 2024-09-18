@@ -29,7 +29,7 @@ class Data {
   int? id;
   String? title;
   String? content;
-  int? createdBy;
+  String? createdBy;
   String? createdAt;
   String? updatedAt;
   String? fileUpload;

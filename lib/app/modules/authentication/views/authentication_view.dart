@@ -8,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../data/data_endpoint/verifikasi.dart';
 import '../../../data/endpoint.dart';
-import '../../../data/localstorage.dart';
 
 class AuthenticationView extends StatefulWidget {
   const AuthenticationView({super.key});
@@ -24,6 +23,8 @@ class _AuthenticationViewState extends State<AuthenticationView> {
   bool _obscureText = true;
   bool _isLoading = false;
   bool _rememberMe = false; // New state for "Remember Me" checkbox
+
+  String? previousExternalId; // Menyimpan ID eksternal sebelumnya
 
   @override
   void initState() {
@@ -52,10 +53,14 @@ class _AuthenticationViewState extends State<AuthenticationView> {
       String? externalId = verifikasi.data?.externalId;
 
       if (externalId != null) {
-        storage.write('externalId', externalId);
-        setState(() {
-          _emailController.text = externalId!; // Update the controller's text
-        });
+        // Simpan externalId jika berbeda dari sebelumnya
+        if (previousExternalId != externalId) {
+          previousExternalId = externalId;
+          storage.write('externalId', externalId);
+          setState(() {
+            _emailController.text = externalId!; // Update the controller's text
+          });
+        }
       } else {
         externalId = storage.read('externalId');
         print('Using saved local external ID: ${externalId ?? 'empty'}');
@@ -84,6 +89,17 @@ class _AuthenticationViewState extends State<AuthenticationView> {
     }
   }
 
+  Future<void> _saveExternalId() async {
+    final storage = GetStorage();
+    String currentExternalId = _emailController.text;
+
+    // Simpan hanya jika tidak ada perubahan
+    if (previousExternalId != currentExternalId) {
+      previousExternalId = currentExternalId;
+      await storage.write('externalId', currentExternalId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -92,16 +108,8 @@ class _AuthenticationViewState extends State<AuthenticationView> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
-        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         elevation: 0,
-        toolbarHeight: 0,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-          statusBarBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-          systemNavigationBarColor: isDarkMode ? Colors.black : Colors.white,
-        ),
       ),
       body: Stack(
         children: [
@@ -115,20 +123,6 @@ class _AuthenticationViewState extends State<AuthenticationView> {
               fit: BoxFit.fitWidth,
             ),
           ),
-          Container(
-            width: 100,
-            height: 100,
-            margin: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(900),
-              border: Border.all(color: Colors.orange),
-              image: DecorationImage(
-                image: AssetImage('assets/gambar/mega.jpg'),
-                fit: BoxFit.fill,
-              ),
-            ),
-          ),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -138,192 +132,162 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                   child: Center(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(16.0),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 400),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            children: AnimationConfiguration.toStaggeredList(
-                              duration: const Duration(milliseconds: 475),
-                              childAnimationBuilder: (widget) => SlideAnimation(
-                                child: FadeInAnimation(
-                                  child: widget,
-                                ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: AnimationConfiguration.toStaggeredList(
+                            duration: const Duration(milliseconds: 475),
+                            childAnimationBuilder: (widget) => SlideAnimation(
+                              child: FadeInAnimation(
+                                child: widget,
                               ),
-                              children: [
-                                SizedBox(height: 20),
-                                TextFormField(
-                                  controller: _emailController,
-                                  decoration: InputDecoration(
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.orange, width: 2.0),
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(width: 1, color: Colors.grey)),
-                                    labelText: 'Profile Id',
-                                    filled: true,
-                                    fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
-                                    labelStyle: GoogleFonts.nunito(color: isDarkMode ? Colors.white70 : Colors.black54),
+                            ),
+                            children: [
+                              SizedBox(height: 20),
+                              TextFormField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
                                   ),
-                                  keyboardType: TextInputType.text,
-                                  style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter your email';
-                                    }
-                                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                                      return 'Enter a valid email';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _passwordController,
-                                  obscureText: _obscureText,
-                                  decoration: InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.orange, width: 2.0),
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
-                                    ),
-                                    labelText: 'Password',
-                                    hintStyle: GoogleFonts.nunito(),
-                                    filled: true,
-                                    fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
-                                    labelStyle: GoogleFonts.nunito(color: isDarkMode ? Colors.white70 : Colors.black54),
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _obscureText ? Icons.visibility : Icons.visibility_off,
-                                        color: isDarkMode ? Colors.white70 : Colors.black54,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _obscureText = !_obscureText;
-                                        });
-                                      },
-                                    ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.orange, width: 2.0),
                                   ),
-                                  style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter your password';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Checkbox(
-                                      value: _rememberMe,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _rememberMe = value!;
-                                        });
-                                      },
-                                    ),
-                                    Text(
-                                      'Remember Me',
-                                      style: GoogleFonts.nunito(
-                                          color: isDarkMode ? Colors.white : Colors.black),
-                                    ),
-                                  ],
-                                ),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    child: Text(
-                                      'Forgot Password',
-                                      style: GoogleFonts.nunito(color: isDarkMode ? Colors.blueAccent : Colors.blue),
-                                    ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
                                   ),
+                                  labelText: 'Profile Id',
+                                  filled: true,
+                                  fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                  labelStyle: GoogleFonts.nunito(color: isDarkMode ? Colors.white70 : Colors.black54),
                                 ),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: _isLoading ? null : () async {
+                                keyboardType: TextInputType.text,
+                                textCapitalization: TextCapitalization.characters, // Uppercase
+                                style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your profile ID';
+                                  }
+                                  if (value.contains(RegExp(r'[a-z]'))) {
+                                    return 'Profile ID must be in uppercase';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              SizedBox(height: 16),
+                              TextFormField(
+                                controller: _passwordController,
+                                obscureText: _obscureText,
+                                decoration: InputDecoration(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.orange, width: 2.0),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
+                                  ),
+                                  labelText: 'Password',
+                                  filled: true,
+                                  fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                  labelStyle: GoogleFonts.nunito(color: isDarkMode ? Colors.white70 : Colors.black54),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscureText ? Icons.visibility : Icons.visibility_off,
+                                      color: isDarkMode ? Colors.white70 : Colors.black54,
+                                    ),
+                                    onPressed: () {
                                       setState(() {
-                                        _isLoading = true;
+                                        _obscureText = !_obscureText;
                                       });
-                                      HapticFeedback.lightImpact();
-                                      if (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
-                                        try {
-                                          print("Sending API request with:");
-                                          print("Email: ${_emailController.text}");
-                                          print("Password: ${_passwordController.text}");
+                                    },
+                                  ),
+                                ),
+                                style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your password';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Checkbox(
+                                    value: _rememberMe,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _rememberMe = value!;
+                                      });
+                                    },
+                                  ),
+                                  Text(
+                                    'Remember Me',
+                                    style: GoogleFonts.nunito(color: isDarkMode ? Colors.white : Colors.black),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    padding: const EdgeInsets.symmetric(vertical: 15),
+                                  ),
+                                  onPressed: _isLoading ? null : () async {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    if (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
+                                      try {
+                                        String? token = await API.login(
+                                          password: _passwordController.text,
+                                          idnumber: _emailController.text,
+                                        );
 
-                                          String? token = await API.login(
-                                            password: _passwordController.text,
-                                            idnumber: _emailController.text,
-                                          );
+                                        if (token != null) {
+                                          await _saveCredentials(); // Save credentials if "Remember Me" is checked
+                                          await _saveExternalId(); // Save the external ID if it hasn't changed
 
-                                          if (token != null) {
-                                            await _saveCredentials(); // Save credentials if "Remember Me" is checked
-
-                                            final verifikasi = await API.VerifikasiID();
-
-                                            if (verifikasi.data?.preTest == true) {
-                                              Get.offAllNamed(Routes.HOME);
-                                            } else {
-                                              Get.offAllNamed(Routes.QUIZ);
-                                            }
-
-                                            print("Login successful, received token: $token");
+                                          final verifikasi = await API.VerifikasiID();
+                                          if (verifikasi.data?.preTest == true) {
+                                            Get.offAllNamed(Routes.HOME);
                                           } else {
-                                            Get.snackbar('Error', 'Terjadi kesalahan saat login',
-                                                backgroundColor: Colors.redAccent,
-                                                colorText: Colors.white);
+                                            Get.offAllNamed(Routes.QUIZ);
                                           }
-                                        } catch (e) {
-                                          print('Error during login: $e');
-                                          Get.snackbar('Gagal Login', 'Terjadi kesalahan saat login',
-                                              backgroundColor: Colors.redAccent, colorText: Colors.white);
-                                        } finally {
-                                          setState(() {
-                                            _isLoading = false; // Menghentikan loading setelah proses selesai
-                                          });
+                                        } else {
+                                          Get.snackbar('Error', 'Terjadi kesalahan saat login',
+                                              backgroundColor: Colors.redAccent,
+                                              colorText: Colors.white);
                                         }
-                                      } else {
-                                        Get.snackbar('Gagal Login', 'Username dan Password harus diisi',
+                                      } catch (e) {
+                                        Get.snackbar('Gagal Login', 'Terjadi kesalahan saat login',
                                             backgroundColor: Colors.redAccent, colorText: Colors.white);
+                                      } finally {
                                         setState(() {
-                                          _isLoading = false; // Menghentikan loading jika validasi gagal
+                                          _isLoading = false; // Menghentikan loading setelah proses selesai
                                         });
                                       }
-                                    },
-                                    child: _isLoading
-                                        ? CircularProgressIndicator(
-                                      color: Colors.white,
-                                    )
-                                        : Text(
-                                      'Login',
-                                      style: GoogleFonts.nunito(fontSize: 18, color: Colors.white),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: isDarkMode ? Colors.orangeAccent : Colors.orange,
-                                      padding: EdgeInsets.symmetric(vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                  ),
+                                    } else {
+                                      Get.snackbar('Gagal Login', 'Username dan Password harus diisi',
+                                          backgroundColor: Colors.redAccent, colorText: Colors.white);
+                                      setState(() {
+                                        _isLoading = false; // Menghentikan loading jika validasi gagal
+                                      });
+                                    }
+                                  },
+                                  child: _isLoading
+                                      ? CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                      : Text('Login', style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -360,4 +324,3 @@ class _AuthenticationViewState extends State<AuthenticationView> {
     );
   }
 }
-

@@ -23,6 +23,11 @@ class SubmitPretest {
     }
     return data;
   }
+
+  @override
+  String toString() {
+    return 'SubmitPretest(code: $code, status: $status, message: $message, data: $data)';
+  }
 }
 
 class Data {
@@ -59,5 +64,10 @@ class Data {
     data['correct_answers'] = this.correctAnswers;
     data['rank'] = this.rank;
     return data;
+  }
+
+  @override
+  String toString() {
+    return 'Data(totalQuestions: $totalQuestions, answeredQuestions: $answeredQuestions, unansweredQuestions: $unansweredQuestions, wrongAnswers: $wrongAnswers, correctAnswers: $correctAnswers, rank: $rank)';
   }
 }

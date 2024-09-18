@@ -20,11 +20,24 @@ class _TestpageViewState extends State<TestpageView> with WidgetsBindingObserver
   late RefreshController _refreshController;
   Future<Verifikasi?>? _userProfileFuture;
   int? userId;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final testQuizProvider = Provider.of<TestProvider>(context, listen: false);
+    if (state == AppLifecycleState.paused) {
+      // Pause the timer if the app goes to background
+      testQuizProvider.pauseTimer();
+    } else if (state == AppLifecycleState.resumed) {
+      // Resume the timer when returning to the page
+      testQuizProvider.resumeTimer();
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-
+    final testQuizProvider = Provider.of<TestProvider>(context, listen: false);
+    testQuizProvider.initializeQuiz(); // Initialize quiz
+    testQuizProvider.resumeTimer(); // Resume timer
     _refreshController = RefreshController(initialRefresh: false);
     _userProfileFuture = _loadUserProfile();
     WidgetsBinding.instance.addObserver(this);
@@ -52,16 +65,6 @@ class _TestpageViewState extends State<TestpageView> with WidgetsBindingObserver
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final testQuizProvider = Provider.of<TestProvider>(context, listen: false);
-    if (state == AppLifecycleState.paused) {
-      testQuizProvider.pauseTimer();
-    } else if (state == AppLifecycleState.resumed) {
-      testQuizProvider.resumeTimer();
-    }
-  }
-
   void _onRefresh() async {
     final testQuizProvider = Provider.of<TestProvider>(context, listen: false);
     _refreshController.refreshCompleted();
@@ -72,8 +75,6 @@ class _TestpageViewState extends State<TestpageView> with WidgetsBindingObserver
     final testQuizProvider = Provider.of<TestProvider>(context);
 
     if (testQuizProvider.questions.isEmpty) {
-      print('Loading... Menunggu pertanyaan dimuat dari API.');
-
       return Scaffold(
         appBar: AppBar(
           title: Text('Agency Pre-Test'),
@@ -112,9 +113,7 @@ class _TestpageViewState extends State<TestpageView> with WidgetsBindingObserver
           actions: [
             IconButton(
               icon: Icon(Icons.refresh, color: Colors.black),
-              onPressed: () {
-                _onRefresh(); // Call the refresh function
-              },
+              onPressed: _onRefresh,
             ),
           ],
         ),
@@ -201,7 +200,6 @@ class _TestpageViewState extends State<TestpageView> with WidgetsBindingObserver
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                Get.offAllNamed(Routes.HOME);
                                 final quizId = question.quizId ?? 0;
                                 if (userId != null) {
                                   testQuizProvider.submitQuiz(quizId, userId!); // Use the fetched userId
@@ -304,3 +302,4 @@ class _TestpageViewState extends State<TestpageView> with WidgetsBindingObserver
     }).toList();
   }
 }
+

@@ -1,20 +1,21 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_media_downloader/flutter_media_downloader.dart'; // Import yang benar
+import 'package:flutter_media_downloader/flutter_media_downloader.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../data/data_endpoint/detaillearning.dart';
-import '../../../data/data_endpoint/learning.dart';
 import '../../../data/endpoint.dart';
+import 'package:html/parser.dart' as html;
 
 class DetailLearningView extends StatefulWidget {
   final int id; // Learning ID
   final MediaDownload downloader; // Gunakan MediaDownload
+
   const DetailLearningView({super.key, required this.id, required this.downloader});
 
   @override
@@ -60,7 +61,7 @@ class _DetailLearningViewState extends State<DetailLearningView> {
         title: Text('Learning Detail', style: GoogleFonts.nunito()),
       ),
       body: FutureBuilder<DetailLearning>(
-        future: fetchDetailLearning(widget.id), // Gunakan widget.id
+        future: fetchDetailLearning(widget.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildShimmerLoading();
@@ -117,15 +118,27 @@ class _DetailLearningViewState extends State<DetailLearningView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Center(
-                              child: Image.network(
-                                _extractImageUrl(learning!.content!),
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Text(
-                                      'Failed to load image',
-                                      style: GoogleFonts.nunito(fontSize: 16),
+                            // Horizontal ListView for images
+                            Container(
+                              height: 200, // Set height as needed
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _extractImages(learning!.content!).length,
+                                itemBuilder: (context, index) {
+                                  final imageUrl = _extractImages(learning.content!)[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: Image.network(
+                                      imageUrl,
+                                      fit: BoxFit.cover,
+                                      width: 150, // Set width for each image
+                                      errorBuilder: (context, error, stackTrace) => Text(
+                                        'Failed to load image',
+                                        style: GoogleFonts.nunito(fontSize: 16),
+                                      ),
                                     ),
+                                  );
+                                },
                               ),
                             ),
                             SizedBox(height: 10),
@@ -138,10 +151,11 @@ class _DetailLearningViewState extends State<DetailLearningView> {
                       ),
                     ),
                   ),
-                if (learning?.fileUpload != null)
+                // Tampilkan tombol download hanya jika fileUpload tidak null dan tidak kosong
+                if (learning != null && learning.fileUpload != null && learning.fileUpload!.isNotEmpty)
                   TextButton.icon(
                     onPressed: () async {
-                      final url = _getFileUrl(learning!.fileUpload!);
+                      final url = _getFileUrl(learning.fileUpload!);
                       await _requestPermissions();
                       try {
                         await widget.downloader.downloadMedia(context, url);
@@ -170,10 +184,7 @@ class _DetailLearningViewState extends State<DetailLearningView> {
   }
 
   void _onRefresh() {
-    HapticFeedback.lightImpact();
-    setState(() {
-      _refreshController.refreshCompleted();
-    });
+    _refreshController.refreshCompleted();
   }
 
   Widget _buildShimmerLoading() {
@@ -225,43 +236,17 @@ class _DetailLearningViewState extends State<DetailLearningView> {
               color: Colors.white,
             ),
           ),
-          SizedBox(height: 10),
-          Shimmer(
-            color: Colors.grey.shade300,
-            duration: const Duration(seconds: 2),
-            interval: const Duration(seconds: 1),
-            child: Container(
-              width: double.infinity,
-              height: 100,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: 20),
-          Shimmer(
-            color: Colors.grey.shade300,
-            duration: const Duration(seconds: 2),
-            interval: const Duration(seconds: 1),
-            child: Container(
-              width: double.infinity,
-              height: 40,
-              color: Colors.white,
-            ),
-          ),
         ],
       ),
     );
   }
 
-  String _extractImageUrl(String content) {
+  List<String> _extractImages(String content) {
     final regex = RegExp(r'src="([^"]+)"');
-    final match = regex.firstMatch(content);
-    if (match != null && match.groupCount > 0) {
-      final imageUrl = match.group(1)!;
-      return imageUrl.startsWith('http')
-          ? imageUrl
-          : 'https://agencydashboard.megainsurance.co.id$imageUrl';
-    }
-    return '';
+    final matches = regex.allMatches(content);
+    return matches.map((match) => match.group(1)!.startsWith('http')
+        ? match.group(1)!
+        : 'https://agencydashboard.megainsurance.co.id${match.group(1)}').toList();
   }
 
   String _getFileUrl(String filePath) {
@@ -271,8 +256,15 @@ class _DetailLearningViewState extends State<DetailLearningView> {
     return fullUrl;
   }
 
+
   String _stripHtmlIfNeeded(String htmlString) {
+    // Remove HTML tags
     final regex = RegExp(r'<[^>]*>');
-    return htmlString.replaceAll(regex, '');
+    String strippedString = htmlString.replaceAll(regex, '');
+
+    // Decode HTML entities using the parser
+    String decodedString = html.parse(strippedString).documentElement?.text ?? '';
+
+    return decodedString;
   }
 }

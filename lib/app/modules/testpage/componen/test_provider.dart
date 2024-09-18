@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'package:bank_mega/app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
-
 import '../../../data/data_endpoint/posttest.dart';
 import '../../../data/endpoint.dart';
+import '../../../routes/app_pages.dart';
 
 class TestProvider extends ChangeNotifier {
   int currentQuestionIndex = 0;
@@ -40,6 +39,7 @@ class TestProvider extends ChangeNotifier {
     print('Jumlah pertanyaan yang dimuat ulang: ${questions.length}');
     currentQuestionIndex = 0; // Reset ke pertanyaan pertama
     selectedAnswer = null;
+    answers.clear(); // Kosongkan jawaban sebelumnya
     _resetTimer(); // Mulai ulang timer
     notifyListeners();
   }
@@ -120,72 +120,114 @@ class TestProvider extends ChangeNotifier {
     }
     nextQuestion();
   }
+  bool areAllQuestionsAnswered() {
+    return answers.length == questions.length;
+  }
 
   Future<void> submitQuiz(int quizId, int userId) async {
-    try {
-      print('Mengirim hasil kuis...');
-      final result = await API.submitTest(quizId, userId, answers);
-      final correctAnswersFromApi = result.data?.correctAnswers ?? 0;
-      final totalQuestionsFromApi = result.data?.totalQuestions ?? 0;
-      final prefs = await SharedPreferences.getInstance();
-      final localCorrectAnswers = prefs.getInt('test_correct_answers') ?? 0;
-      final localTotalQuestions = prefs.getInt('test_total_questions') ?? 0;
-
-      if (correctAnswersFromApi != localCorrectAnswers || totalQuestionsFromApi != localTotalQuestions) {
-        await prefs.setInt('test_correct_answers', correctAnswersFromApi);
-        await prefs.setInt('test_total_questions', totalQuestionsFromApi);
-      }
-
-      print('Hasil kuis berhasil dikirim: ${result.data}');
-
-      // Panggil refreshQuestions untuk mendapatkan pertanyaan baru setelah submit
-      await refreshQuestions();
-
-      Get.defaultDialog(
-        title: "Quiz Result",
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Lottie.asset(
-              'assets/lottie/anm_celebration.json',
-              width: 200,
-              height: 200,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(height: 20),
-            Text("Total Questions: ${totalQuestionsFromApi}", style: GoogleFonts.nunito(),),
-            Text("Answered Questions: ${result.data?.answeredQuestions ?? 0}", style: GoogleFonts.nunito(),),
-            Text("Unanswered Questions: ${result.data?.unansweredQuestions ?? 0}", style: GoogleFonts.nunito(),),
-            Text("Wrong Answers: ${result.data?.wrongAnswers ?? 0}", style: GoogleFonts.nunito(),),
-            Text("Correct Answers: ${correctAnswersFromApi}", style: GoogleFonts.nunito(),),
-            Text("Rank: ${result.data?.rank ?? 0}", style: GoogleFonts.nunito(),),
-            SizedBox(height: 20),
-            ElevatedButton(
+    if (!areAllQuestionsAnswered()) {
+      Get.dialog(
+        AlertDialog(
+          title: Text('Incomplete Quiz'),
+          content: Text('Please answer all the questions before submitting the quiz.'),
+          actions: [
+            TextButton(
               onPressed: () {
-               Get.back();
+                Get.back(); // Menutup dialog
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              ),
-              child: Text('Go to Home', style: GoogleFonts.nunito(color: Colors.white),),
+              child: Text('OK'),
             ),
           ],
         ),
-        barrierDismissible: true,
       );
+      return;
+    }
+    Get.toNamed(Routes.HOME);
+    // Pause the timer when submitting the quiz
+    pauseTimer();
+
+    // Jika semua pertanyaan sudah dijawab, lanjutkan dengan submit
+    try {
+      print('Mengirim hasil kuis...');
+      final result = await API.submitTest(quizId, userId, answers);
+
+      // Ambil data dari response API
+      final totalQuestionsFromApi = result.data?.totalQuestions ?? 0;
+      final answeredQuestionsFromApi = result.data?.answeredQuestions ?? 0;
+      final unansweredQuestionsFromApi = result.data?.unansweredQuestions ?? 0;
+      final wrongAnswersFromApi = result.data?.wrongAnswers ?? 0;
+      final correctAnswersFromApi = result.data?.correctAnswers ?? 0;
+      final rankFromApi = result.data?.rank ?? 0;
+      await refreshQuestions();
+      // Tampilkan hasil dalam bottom sheet
+      await Get.bottomSheet(
+        isDismissible: false, // Disable dismissing the bottom sheet
+        enableDrag: false, // Disable dragging down to close
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Lottie.asset(
+                'assets/lottie/anm_celebration.json',
+                width: 200,
+                height: 200,
+                fit: BoxFit.contain,
+              ),
+              Column(
+                children: [
+                  Text("Total Questions: $totalQuestionsFromApi", style: GoogleFonts.nunito()),
+                  Text("Answered Questions: $answeredQuestionsFromApi", style: GoogleFonts.nunito()),
+                  Text("Unanswered Questions: $unansweredQuestionsFromApi", style: GoogleFonts.nunito()),
+                  Text("Wrong Answers: $wrongAnswersFromApi", style: GoogleFonts.nunito()),
+                  Text("Correct Answers: $correctAnswersFromApi", style: GoogleFonts.nunito()),
+                  Text("Rank: $rankFromApi", style: GoogleFonts.nunito()),
+                ],
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                Get.back();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                  child: Text('Back', style: GoogleFonts.nunito(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      // Refresh questions after the bottom sheet is closed
+
+
+      print("Hasil kuis berhasil dikirim: ${result.data}");
+
     } catch (e) {
       print('Error saat mengirim hasil kuis: $e');
       Get.snackbar('Error', e.toString());
     }
   }
 
+
+
   void restartQuiz() {
     currentQuestionIndex = 0;
     score = 0;
     isQuizOver = false;
     selectedAnswer = null;
-    answers.clear();
+    answers.clear(); // Kosongkan jawaban
     _resetTimer();
     notifyListeners();
   }

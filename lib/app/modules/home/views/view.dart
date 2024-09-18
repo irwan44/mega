@@ -2,7 +2,6 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -117,8 +116,7 @@ class _ViewHomeState extends State<ViewHome> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(
-                    onPressed: () =>
-                        Navigator.of(context).pop(false), // Jangan keluar
+                    onPressed: () => Navigator.of(context).pop(false), // Jangan keluar
                     child: const Text(
                       'Tidak',
                       style: TextStyle(color: Colors.red),
@@ -147,6 +145,9 @@ class _ViewHomeState extends State<ViewHome> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return WillPopScope(
       onWillPop: () async {
         _onWillPop();
@@ -160,7 +161,7 @@ class _ViewHomeState extends State<ViewHome> {
           backgroundColor: Colors.white,
           title: Image.asset(
             'assets/logo/mega_insurance.png',
-            height: 30,
+            height: screenHeight * 0.05,
           ),
           centerTitle: false,
           automaticallyImplyLeading: false,
@@ -170,18 +171,18 @@ class _ViewHomeState extends State<ViewHome> {
                 _showRanksUnderDevelopmentNotifikasi();
               },
               child: Container(
-              width: 50,
-              height: 50,
-              margin: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(1000),
-                border: Border.all(color: Colors.orange),
-              ),
-              child: const Icon(
-                Icons.notification_important_sharp,
-                color: Colors.orange,
-                size: 18,
+                width: screenWidth * 0.12,
+                height: screenWidth * 0.12,
+                margin: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(1000),
+                  border: Border.all(color: Colors.orange),
+                ),
+                child: const Icon(
+                  Icons.notification_important_sharp,
+                  color: Colors.orange,
+                  size: 18,
                 ),
               ),
             ),
@@ -214,13 +215,13 @@ class _ViewHomeState extends State<ViewHome> {
                         ),
                         Container(
                           width: double.infinity,
-                          height: 150,
+                          height: screenHeight * 0.2,
                           margin: const EdgeInsets.all(10),
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             image: DecorationImage(
                               image: AssetImage(
-                                  'assets/gambar/town_background_cutout.png'), // Ganti dengan path gambar Anda
+                                  'assets/gambar/town_background_cutout.png'),
                               fit: BoxFit.fitWidth,
                             ),
                           ),
@@ -233,14 +234,15 @@ class _ViewHomeState extends State<ViewHome> {
                             Wrap(
                               spacing: 16.0,
                               runSpacing: 16.0,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              alignment: WrapAlignment.center,
                               children: [
                                 _buildMenuItem(context, 'Create', Icons.create),
                                 _buildMenuItem(context, 'Renew', Icons.refresh),
                                 _buildMenuItem(context, 'Ranks', Icons.star),
                                 _buildMenuItem(context, 'Learning', Icons.school),
                                 _buildMenuItem(context, 'Post-Test', Icons.assignment),
-                                _buildMenuItem(
-                                    context, 'Reminder', Icons.alarm), // Menu Reminder
+                                _buildMenuItem(context, 'Reminder', Icons.alarm),
                               ],
                             ),
                             const SizedBox(height: 32),
@@ -251,50 +253,46 @@ class _ViewHomeState extends State<ViewHome> {
                   ),
                 ),
                 Positioned(
-                  bottom: 250,
+                  bottom: screenHeight * 0.30,
                   right: 0,
                   child: Lottie.asset(
                     'assets/lottie/anm_bird.json',
-                    width: 300,
-                    height: 300,
+                    width: screenWidth * 0.5,
+                    height: screenHeight * 0.3,
                     fit: BoxFit.contain,
                   ),
                 ),
                 Positioned(
-                  bottom: 250,
+                  bottom: screenHeight * 0.30,
                   right: 0,
                   child: Lottie.asset(
                     'assets/lottie/anm_splash.json',
-                    width: 300,
-                    height: 300,
+                    width: screenWidth * 0.5,
+                    height: screenHeight * 0.3,
                     fit: BoxFit.contain,
                   ),
                 ),
                 Positioned(
-                  bottom: 230,
+                  bottom: screenHeight * 0.30,
                   right: 0,
                   child: Lottie.asset(
                     'assets/lottie/anm_celebration.json',
-                    width: 200,
-                    height: 200,
+                    width: screenWidth * 0.4,
+                    height: screenHeight * 0.2,
                     fit: BoxFit.contain,
                   ),
                 ),
                 Positioned(
-                  bottom: 250,
+                  bottom: screenHeight * 0.30,
                   right: 0,
                   child: Container(
-                    width: 200,
-                    height: 50,
+                    width: screenWidth * 0.5,
+                    height: screenHeight * 0.07,
                     decoration: BoxDecoration(
                       color: Colors.orange,
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(10),
                         topLeft: Radius.circular(10),
-                      ),
-                      image: const DecorationImage(
-                        image: AssetImage('assets/gambar/bg_quiz.png'),
-                        fit: BoxFit.fill, // Adjust this as needed
                       ),
                       border: Border.all(color: Colors.orange),
                     ),
@@ -308,7 +306,7 @@ class _ViewHomeState extends State<ViewHome> {
                             if (snapshot.connectionState == ConnectionState.waiting) {
                               return LoadingAnimationWidget.newtonCradle(
                                 color: Colors.white,
-                                size: 70,
+                                size: screenWidth * 0.2,
                               );
                             } else if (snapshot.hasData && snapshot.data != null) {
                               final userProfile = snapshot.data!.data;
@@ -320,14 +318,16 @@ class _ViewHomeState extends State<ViewHome> {
                                     style: GoogleFonts.nunito(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontSize: screenWidth * 0.04,
                                     ),
                                   ),
                                   Text(
-                                    userProfile?.corporate == true ? 'Corporate' : 'Individual',
+                                    userProfile?.corporate == true
+                                        ? 'Corporate'
+                                        : 'Individual',
                                     style: GoogleFonts.nunito(
                                       color: Colors.white,
-                                      fontSize: 16,
+                                      fontSize: screenWidth * 0.04,
                                     ),
                                   ),
                                 ],
@@ -354,52 +354,8 @@ class _ViewHomeState extends State<ViewHome> {
     );
   }
 
-  void _showUnauthorizedBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          width: double.infinity,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Unauthorized Access',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'You are not authorized. Please log in.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Get.offAllNamed(Routes.AUTHENTICATION);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                ),
-                child: const Text('Go to Login', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Widget _Slider(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -420,6 +376,8 @@ class _ViewHomeState extends State<ViewHome> {
           items: imgList
               .map((item) => Container(
             margin: const EdgeInsets.only(right: 10),
+            width: screenWidth * 0.9,
+            height: screenWidth * 0.5,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               image: DecorationImage(
@@ -432,7 +390,7 @@ class _ViewHomeState extends State<ViewHome> {
         ),
         const SizedBox(height: 10),
         Container(
-          width: 100,
+          width: screenWidth * 0.3,
           decoration: BoxDecoration(
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(10),
@@ -444,8 +402,7 @@ class _ViewHomeState extends State<ViewHome> {
               return Container(
                 width: 19.0,
                 height: 5.0,
-                margin:
-                const EdgeInsets.symmetric(vertical: 7.0, horizontal: 2.0),
+                margin: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 2.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   shape: BoxShape.rectangle,
@@ -474,8 +431,9 @@ class _ViewHomeState extends State<ViewHome> {
   }
 
   Widget _buildMenuItem(BuildContext context, String title, IconData icon) {
-    final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
     return SizedBox(
+      width: screenWidth * 0.25,
       child: GestureDetector(
         onTap: () async {
           double scorePercentage = 0.0;
@@ -483,7 +441,19 @@ class _ViewHomeState extends State<ViewHome> {
 
           final userProfile = await _loadUserProfile();
           final accountStatus = userProfile?.data?.accountStatus ?? -1;
-          final postTestScore = double.tryParse(userProfile?.data?.postTestScore ?? "") ?? 0.0;
+
+          // Bersihkan karakter non-angka (misalnya %, spasi) dari postTestScore
+          String? rawScore = userProfile?.data?.postTestScore?.replaceAll('%', '').trim();
+
+          // Coba parse menjadi double
+          final postTestScore = double.tryParse(rawScore ?? "0.0") ?? 0.0;
+
+          // Cek tipe data dan nilai dari postTestScore
+          print('Title: $title');
+          print('Post-Test Score (Original): ${userProfile?.data?.postTestScore ?? ""}');
+          print('Post-Test Score (Cleaned): $rawScore');
+          print('Post-Test Score (Parsed): $postTestScore');
+          print('Post-Test Score Type: ${postTestScore.runtimeType}');
 
           if (title == 'Post-Test') {
             if (accountStatus == 2) {
@@ -494,13 +464,15 @@ class _ViewHomeState extends State<ViewHome> {
           } else if (title == 'Create' || title == 'Renew') {
             testType = 'Post-Test';
             print('Title: $title');
-            print('Post-Test Score: ${postTestScore.toStringAsFixed(2)}%');
+            print('Post-Test Score: ${userProfile?.data?.postTestScore ?? ""}');
 
-            if (postTestScore >= 80.0) {
+            if (postTestScore >= 80.00) {
+              print('Post-Test Score lebih dari 80%, membuka menu');
               Get.toNamed(title == 'Create' ? Routes.WebView : Routes.RENEW);
             } else {
               _showAccessDenied(title, testType);
             }
+
           } else if (title == 'Ranks') {
             _showRanksUnderDevelopment();
           } else if (title == 'Reminder') {
@@ -537,7 +509,7 @@ class _ViewHomeState extends State<ViewHome> {
                     style: GoogleFonts.nunito(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: theme.textTheme.bodyText1?.color,
+                      color: Theme.of(context).textTheme.bodyText1?.color,
                     ),
                   ),
                 ],
@@ -546,6 +518,100 @@ class _ViewHomeState extends State<ViewHome> {
           ],
         ),
       ),
+    );
+  }
+  void _showAccessDenied(String menuTitle, String testType) {
+    showModalBottomSheet(
+      showDragHandle: true,
+      context: context,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Akses Ditolak',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Anda tidak dapat mengakses menu "$menuTitle" karena hasil $testType Anda di bawah 80%.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity, // Membuat tombol menjadi selebar mungkin
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: const Text('OK', style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  void _showUnauthorizedBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          width: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Unauthorized Access',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'You are not authorized. Please log in.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child:
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Get.offAllNamed(Routes.AUTHENTICATION);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                child: const Text('Go to Login',
+                    style: TextStyle(color: Colors.white)),
+              ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -613,7 +679,7 @@ class _ViewHomeState extends State<ViewHome> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                'assets/gambar/login_failed.png', // Update this with your asset path
+                'assets/gambar/login_failed.png',
                 height: 100,
               ),
               const SizedBox(height: 10),
@@ -633,54 +699,7 @@ class _ViewHomeState extends State<ViewHome> {
               ),
               const SizedBox(height: 20),
               SizedBox(
-                width: double.infinity, // Membuat tombol menjadi selebar mungkin
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                  ),
-                  child: const Text('OK', style: TextStyle(color: Colors.white)),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-
-  void _showAccessDenied(String menuTitle, String testType) {
-    showModalBottomSheet(
-      showDragHandle: true,
-      context: context,
-      elevation: 0,
-      backgroundColor: Colors.white,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Akses Ditolak',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Anda tidak dapat mengakses menu "$menuTitle" karena hasil $testType Anda di bawah 80%.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity, // Membuat tombol menjadi selebar mungkin
+                width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
@@ -725,6 +744,9 @@ class _ViewHomeState extends State<ViewHome> {
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child:
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
@@ -734,12 +756,14 @@ class _ViewHomeState extends State<ViewHome> {
                 ),
                 child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
+              ),
             ],
           ),
         );
       },
     );
   }
+
   void _showRanksUnderDevelopmentNotifikasi() {
     showModalBottomSheet(
       showDragHandle: true,
@@ -767,6 +791,9 @@ class _ViewHomeState extends State<ViewHome> {
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child:
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
@@ -776,12 +803,14 @@ class _ViewHomeState extends State<ViewHome> {
                 ),
                 child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
+              ),
             ],
           ),
         );
       },
     );
   }
+
   void _onRefresh() async {
     await Future.delayed(const Duration(milliseconds: 1000));
     _refreshController.refreshCompleted();

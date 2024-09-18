@@ -1,32 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../componen/remender.dart';
 import '../controllers/reminder_controller.dart';
 
-class ReminderView extends StatelessWidget {
+class ReminderView extends StatefulWidget {
   const ReminderView({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final ReminderController controller = Get.put(ReminderController());
+  _ReminderViewState createState() => _ReminderViewState();
+}
 
+class _ReminderViewState extends State<ReminderView> {
+  final ReminderController controller = Get.put(ReminderController());
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade200,
       extendBodyBehindAppBar: false,
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.white,
-        title: const Text('Your Reminder'),
+        title: const Text('Your Reminders'),
         centerTitle: true,
       ),
       body: Obx(() {
         return controller.notes.isEmpty
             ? const Center(
           child: Text(
-            'No Reminder available. Click + to add a new Reminder.',
+            'No Reminders available. Click + to add a new Reminder.',
             style: TextStyle(fontSize: 16),
           ),
         )
@@ -35,40 +39,54 @@ class ReminderView extends StatelessWidget {
           itemBuilder: (context, index) {
             final note = controller.notes[index];
             final priority = note['priority'] ?? 'Low';
+            final reminderDate = note['reminderDate'] != null
+                ? DateTime.parse(note['reminderDate'])
+                : null;
+            final formattedDate = reminderDate != null
+                ? DateFormat('yyyy-MM-dd HH:mm').format(reminderDate)
+                : 'No Date';
+
+            // Cek status notifikasi, jika aktif tampilkan tanda
+            final isNotificationActive = note['isPressed'] == true;
 
             return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: AnimationConfiguration.toStaggeredList(
-                duration: const Duration(milliseconds: 475),
-            childAnimationBuilder: (widget) => SlideAnimation(
-            child: FadeInAnimation(
-            child: widget,
-            ),
-            ),
-            children: [
-              SizedBox(height: 10,),
-              Container(
-                margin: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
-              ),
-              child: ListTile(
-                leading: _buildPriorityIndicator(priority),
-                title: Text(note['title'] ?? '', style: GoogleFonts.nunito(color: Colors.black, fontWeight: FontWeight.bold),),
-                subtitle: Text(note['note'] ?? ''),
-                onTap: () {
-                  Get.to(() => AddNoteView(
-                    index: index,
-                    initialTitle: note['title'] ?? '',
-                    initialNote: note['note'] ?? '',
-                    initialPriority: priority,
-                  ));
-                },
-              ),
-            ),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  margin: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white,
+                  ),
+                  child: ListTile(
+                    leading: _buildPriorityIndicator(priority),
+                    title: Text(
+                      note['title'] ?? '',
+                      style: GoogleFonts.nunito(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(note['note'] ?? ''),
+                        const SizedBox(height: 5),
+                        Text('Reminder Date: $formattedDate'),
+                      ],
+                    ),
+                    onTap: () {
+                      Get.to(() => AddNoteView(
+                        index: index,
+                        initialTitle: note['title'] ?? '',
+                        initialNote: note['note'] ?? '',
+                        initialPriority: priority,
+                        initialReminderDate: reminderDate,
+                      ));
+                    },
+                  ),
+                ),
               ],
-                )
             );
           },
         );
