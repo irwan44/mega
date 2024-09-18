@@ -582,7 +582,7 @@ class _ViewHomeState extends State<ViewHome> {
               ),
               const SizedBox(height: 20),
               SizedBox(
-                width: double.infinity, // Membuat tombol menjadi selebar mungkin
+                width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
                     Get.toNamed(Routes.TESTPAGE);
