@@ -5,12 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pdf_render/pdf_render.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/services.dart' show rootBundle; // Tambahkan ini
-import 'package:path_provider/path_provider.dart'; // Tambahkan ini
-import 'package:image/image.dart' as img;
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 import '../../../data/localstorage.dart';
 
 class AuthenticationController extends GetxController {
@@ -18,6 +16,7 @@ class AuthenticationController extends GetxController {
   var currentStep = 0.obs;
   var selectedDate = Rx<DateTime?>(null);
   RxBool isLoading = false.obs;
+
   // Form keys
   final formKey1 = GlobalKey<FormState>();
   final formKey2 = GlobalKey<FormState>();
@@ -81,19 +80,18 @@ class AuthenticationController extends GetxController {
     requestPermissions();
     loadStoredEmail();
     loadStoredExternalId();
-    loadDefaultSiup(); // Panggil untuk memuat file default
+    loadDefaultSiup();
   }
 
-  // Fungsi untuk memuat file default dari aset
   Future<void> loadDefaultSiup() async {
     try {
-      // Muat file dari aset
+      // Load the file from assets
       final ByteData data = await rootBundle.load('assets/gambar/default.jpg');
       final Directory tempDir = await getTemporaryDirectory();
       final File file = File('${tempDir.path}/default.jpg');
       await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
 
-      // Set file default ke variabel siup
+      // Set the default file to the siup variable
       siup.value = file;
     } catch (e) {
       print('Error loading default SIUP file: $e');
@@ -156,10 +154,10 @@ class AuthenticationController extends GetxController {
   }
 
   Future<void> showImageSourceDialog(String field) async {
-    // Dialog untuk memilih sumber gambar
+    // Dialog to choose image source or PDF
     await Get.dialog(
       AlertDialog(
-        title: Text('Choose Image Source'),
+        title: Text('Choose File Source'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -184,7 +182,7 @@ class AuthenticationController extends GetxController {
               title: Text('Pick PDF'),
               onTap: () {
                 Navigator.of(Get.context!).pop();
-                pickAndConvertPdf(field);
+                pickAndUploadPdf(field);
               },
             ),
           ],
@@ -192,34 +190,6 @@ class AuthenticationController extends GetxController {
       ),
     );
   }
-
-  Future<PdfPageImage?> renderPdfPage(File file) async {
-    try {
-      // Open the PDF document
-      final pdfDocument = await PdfDocument.openFile(file.path);
-
-      // Get the first page of the PDF
-      final page = await pdfDocument.getPage(1);
-
-      // Desired DPI for higher quality
-      final int targetDpi = 300; // Adjust this value for higher or lower quality
-      final double scale = targetDpi / 72.0; // 72 is the default DPI for PDF
-
-      // Render the page to an image with higher DPI
-      final pageImage = await page.render(
-        width: (page.width * scale).toInt(), // Convert to int for width
-        height: (page.height * scale).toInt(), // Convert to int for height
-        backgroundFill: true, // Set backgroundFill to true or false as needed
-      );
-
-      return pageImage;
-    } catch (e) {
-      print('Error rendering PDF page: $e');
-      return null;
-    }
-  }
-
-
 
   Future<void> pickImage(ImageSource source, String field) async {
     try {
@@ -238,7 +208,7 @@ class AuthenticationController extends GetxController {
     }
   }
 
-  Future<void> pickAndConvertPdf(String field) async {
+  Future<void> pickAndUploadPdf(String field) async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -247,46 +217,17 @@ class AuthenticationController extends GetxController {
 
       if (result != null && result.files.single.path != null) {
         File pdfFile = File(result.files.single.path!);
-        final document = await PdfDocument.openFile(pdfFile.path);
 
-        // Render the first page of the PDF with its original size
-        final page = await document.getPage(1);
+        assignFileToField(pdfFile, field);
 
-        // Render the page using its original width and height
-        final pageImage = await page.render(
-          width: page.width.toInt(),
-          height: page.height.toInt(),
-        );
-
-        if (pageImage != null) {
-          // Convert to image using the original pixel buffer
-          final img.Image image = img.Image.fromBytes(
-            width: pageImage.width,
-            height: pageImage.height,
-            bytes: pageImage.pixels.buffer, // Use ByteBuffer from pixels
-          );
-
-          String filePath = pdfFile.path.replaceAll('.pdf', '.png');
-          final pngBytes = img.encodePng(image);
-          final pngFile = File(filePath);
-          await pngFile.writeAsBytes(pngBytes);
-
-          print('PDF has been successfully converted to PNG: ${pngFile.path}');
-
-          assignFileToField(pngFile, field);
-        } else {
-          print('Failed to render PDF page to an image.');
-        }
+        print('PDF has been successfully selected: ${pdfFile.path}');
       } else {
         print('No PDF file was selected.');
       }
     } catch (e) {
-      print('An error occurred: $e');
+      print('An error occurred while picking the PDF: $e');
     }
   }
-
-
-
 
   void assignFileToField(File file, String field) {
     switch (field) {
@@ -311,7 +252,7 @@ class AuthenticationController extends GetxController {
       default:
         Get.snackbar(
           'Invalid Field',
-          'The specified field is not valid for image upload.',
+          'The specified field is not valid for file upload.',
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
         );

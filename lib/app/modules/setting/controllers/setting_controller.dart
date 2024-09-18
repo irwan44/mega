@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -247,10 +248,10 @@ class SettingController extends GetxController {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> showImageSourceDialog(String field) async {
-    // Show dialog to choose between camera and gallery
+    // Dialog to choose image source or PDF
     await Get.dialog(
       AlertDialog(
-        title: Text('Choose Image Source'),
+        title: Text('Choose File Source'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -270,12 +271,72 @@ class SettingController extends GetxController {
                 pickImage(ImageSource.gallery, field);
               },
             ),
+            ListTile(
+              leading: Icon(Icons.picture_as_pdf),
+              title: Text('Pick PDF'),
+              onTap: () {
+                Navigator.of(Get.context!).pop();
+                pickAndUploadPdf(field); // Call function to pick and upload PDF
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
+  Future<void> pickAndUploadPdf(String field) async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'], // Only allow PDF files
+      );
+
+      if (result != null && result.files.single.path != null) {
+        // Get the picked PDF file
+        File pdfFile = File(result.files.single.path!);
+
+        // Directly assign the picked PDF file to the appropriate field
+        assignFileToField(pdfFile, field);
+
+        print('PDF has been successfully selected: ${pdfFile.path}');
+      } else {
+        print('No PDF file was selected.');
+      }
+    } catch (e) {
+      print('An error occurred while picking the PDF: $e');
+    }
+  }
+  void assignFileToField(File file, String field) {
+    switch (field) {
+      case 'profilePicture':
+        profilePicture.value = file;
+        break;
+      case 'civilIdCard':
+        civilIdCard.value = file;
+        break;
+      case 'taxIdCard':
+        taxIdCard.value = file;
+        break;
+      case 'licenseAaui':
+        licenseAaui.value = file;
+        break;
+      case 'savingBook':
+        savingBook.value = file;
+        break;
+      case 'siup':
+        siup.value = file;
+        break;
+      default:
+        Get.snackbar(
+          'Invalid Field',
+          'The specified field is not valid for file upload.',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        break;
+    }
+  }
   Future<void> pickImage(ImageSource source, String field) async {
     final permissionStatus = await Permission.photos.status;
 

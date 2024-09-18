@@ -581,17 +581,17 @@ class _ViewHomeState extends State<ViewHome> {
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const TestpageView()), // Navigasi ke halaman TestpageView
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+              SizedBox(
+                width: double.infinity, // Membuat tombol menjadi selebar mungkin
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: const Text('OK', style: TextStyle(color: Colors.white)),
                 ),
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -599,7 +599,6 @@ class _ViewHomeState extends State<ViewHome> {
       },
     );
   }
-
 
   void _showAccessDeniedForApproval() {
     showModalBottomSheet(
@@ -633,14 +632,17 @@ class _ViewHomeState extends State<ViewHome> {
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+              SizedBox(
+                width: double.infinity, // Membuat tombol menjadi selebar mungkin
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: const Text('OK', style: TextStyle(color: Colors.white)),
                 ),
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -648,6 +650,8 @@ class _ViewHomeState extends State<ViewHome> {
       },
     );
   }
+
+
   void _showAccessDenied(String menuTitle, String testType) {
     showModalBottomSheet(
       showDragHandle: true,
@@ -675,14 +679,17 @@ class _ViewHomeState extends State<ViewHome> {
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+              SizedBox(
+                width: double.infinity, // Membuat tombol menjadi selebar mungkin
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: const Text('OK', style: TextStyle(color: Colors.white)),
                 ),
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

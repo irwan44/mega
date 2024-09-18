@@ -11,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
@@ -38,6 +40,7 @@ class _EditAccountState extends State<EditAccount> {
   void initState() {
     super.initState();
   }
+
   Future<bool> _onWillPop() async {
     final shouldExit = await showModalBottomSheet<bool>(
       context: context,
@@ -61,13 +64,15 @@ class _EditAccountState extends State<EditAccount> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text('Apakah Anda yakin ingin keluar dari Edit Account?'),
+                child: Text(
+                    'Apakah Anda yakin ingin keluar dari Edit Account?'),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(false), // Jangan keluar
+                    onPressed: () => Navigator.of(context).pop(false),
+                    // Jangan keluar
                     child: Text(
                       'Tidak',
                       style: TextStyle(color: Colors.red),
@@ -92,7 +97,8 @@ class _EditAccountState extends State<EditAccount> {
         );
       },
     );
-    return shouldExit ?? false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+    return shouldExit ??
+        false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
   }
 
   @override
@@ -140,166 +146,207 @@ class _EditAccountState extends State<EditAccount> {
             ],
           );
         }),
-        bottomNavigationBar: Obx(() => BottomAppBar(
-          elevation: 0,
-          color: Colors.white,
-          child: Row(
-            children: [
-              if (controller.currentStep.value > 0)
-                IconButton(
-                  icon: Icon(Icons.arrow_back),
-                  onPressed: () {
-                    controller.previousStep();
-                  },
-                ),
-              Spacer(),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: controller.currentStep.value < 2 ? Colors.blue : Colors.green,
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                ),
-                onPressed: () async {
-                  if (controller.currentStep.value < 2) {
-                    controller.nextStep();
-                  } else {
-                    HapticFeedback.lightImpact();
+        bottomNavigationBar: Obx(() =>
+            BottomAppBar(
+              elevation: 0,
+              color: Colors.white,
+              child: Row(
+                children: [
+                  if (controller.currentStep.value > 0)
+                    IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () {
+                        controller.previousStep();
+                      },
+                    ),
+                  Spacer(),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: controller.currentStep.value < 2 ? Colors
+                          .blue : Colors.green,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 50, vertical: 20),
+                    ),
+                    onPressed: () async {
+                      if (controller.currentStep.value < 2) {
+                        controller.nextStep();
+                      } else {
+                        HapticFeedback.lightImpact();
 
-                    // Perform all form validations before showing alert
-                    if (controller.formKey1.currentState?.validate() == true &&
-                        controller.formKey2.currentState?.validate() == true &&
-                        controller.formKey3.currentState?.validate() == true) {
-                      List<String> emptyFields = [];
+                        // Perform all form validations before showing alert
+                        if (controller.formKey1.currentState?.validate() ==
+                            true &&
+                            controller.formKey2.currentState?.validate() ==
+                                true &&
+                            controller.formKey3.currentState?.validate() ==
+                                true) {
+                          List<String> emptyFields = [];
 
-                      // Check if text fields are empty
-                      if (controller.nameController.text.trim().isEmpty) emptyFields.add('Name');
-                      if (controller.addressController.text.trim().isEmpty) emptyFields.add('Address');
-                      if (controller.selectedDate.value == null) emptyFields.add('Date of Birth');
-                      if (controller.placeOfBirthController.text.trim().isEmpty) emptyFields.add('Place of Birth');
-                      if (controller.emailController.text.trim().isEmpty) emptyFields.add('Email');
+                          // Check if text fields are empty
+                          if (controller.nameController.text
+                              .trim()
+                              .isEmpty) emptyFields.add('Name');
+                          if (controller.addressController.text
+                              .trim()
+                              .isEmpty) emptyFields.add('Address');
+                          if (controller.selectedDate.value == null) emptyFields
+                              .add('Date of Birth');
+                          if (controller.placeOfBirthController.text
+                              .trim()
+                              .isEmpty) emptyFields.add('Place of Birth');
+                          if (controller.emailController.text
+                              .trim()
+                              .isEmpty) emptyFields.add('Email');
 
-                      // Check for file uploads; ensure both local files and network URLs are considered
-                      if (controller.civilIdCard.value == null && controller.userProfile.value?.data?.attCivilid == null) {
-                        emptyFields.add('Civil ID Card');
-                      }
-                      if (controller.taxIdCard.value == null && controller.userProfile.value?.data?.attTaxid == null) {
-                        emptyFields.add('Tax ID Card');
-                      }
-                      if (controller.licenseAaui.value == null && controller.userProfile.value?.data?.attLicense == null) {
-                        emptyFields.add('License AAUI');
-                      }
-                      if (controller.savingBook.value == null && controller.userProfile.value?.data?.attSaving == null) {
-                        emptyFields.add('Saving Book');
-                      }
-                      if (controller.profilePicture.value == null && controller.userProfile.value?.data?.attProfile == null) {
-                        emptyFields.add('Profile Picture');
-                      }
-
-                      // If any fields are empty, show the error and return early
-                      if (emptyFields.isNotEmpty) {
-                        Get.snackbar(
-                          'Gagal Registrasi',
-                          'Semua bidang harus diisi: ${emptyFields.join(', ')}',
-                          backgroundColor: Colors.redAccent,
-                          colorText: Colors.white,
-                        );
-                        return;
-                      }
-
-                      // If all fields are validated and filled, show the alert
-                      QuickAlert.show(
-                        context: context,
-                        type: QuickAlertType.warning,
-                        title: 'Perhatian Penting!',
-                        text: 'Pastikan untuk memeriksa dan menyimpan data akun yang telah diubah sebelum meninggalkan halaman ini. Apakah Anda yakin ingin melanjutkan?',
-                        confirmBtnText: 'Simpan Perubahan',
-                        cancelBtnText: 'Keluar',
-                        confirmBtnColor: Colors.green,
-                        onConfirmBtnTap: () async {
-                          try {
-                            controller.isLoading.value = true;
-                            String dateOfBirth = DateFormat('yyyy-MM-dd').format(controller.selectedDate.value ?? DateTime.now());
-
-                            String? token = (await API.UpdateRegisterID(
-                              name: controller.nameController.text,
-                              address: controller.addressController.text,
-                              place_of_birth: controller.placeOfBirthController.text,
-                              date_of_birth: dateOfBirth,
-                              phone_number: controller.phoneNumberController.text,
-                              email: controller.emailController.text,
-                              bank_account_name: controller.bankAccountNameController.text ?? '',
-                              bank_account_number: controller.bankAccountNumberController.text,
-                              bank_code: controller.selectedBank.value ?? '',
-                              bank_name: controller.selectedBankName.value ?? '',
-                              bank_currency: controller.selectedCurency.value ?? "",
-                              civil_id: controller.civilIdController.text,
-                              tax_id: controller.taxIdController.text,
-                              corporate: controller.selectedType.value ?? '',
-                              salutation: controller.selectedSalutation.value ?? '',
-                              zip_code: controller.zipCodeController.text,
-                              province: controller.selectedProvince.value ?? '',
-                              city: controller.selectedCity.value ?? '',
-                              pic: controller.PicController.text ?? '',
-                              gender: controller.selectedGender.value ?? '',
-                              license_number: controller.licenseNumberController.text,
-                              password: controller.passwordController.text,
-                              password_confirmation: controller.passwordConfirmationController.text,
-                              civil_id_card: controller.civilIdCard.value,
-                              tax_id_card: controller.taxIdCard.value,
-                              license_aaui: controller.licenseAaui.value,
-                              saving_book: controller.savingBook.value,
-                              siup: controller.siup.value,
-                              profile_picture: controller.profilePicture.value,
-                            )) as String?;
-
-                            // Handle response
-                            if (token != null) {
-                              Get.offAllNamed(Routes.HOME);
-                              print("Edit Account successful, received token: $token");
-                            } else {
-                              Get.snackbar(
-                                'Error',
-                                'Terjadi kesalahan saat Edit Account',
-                                backgroundColor: Colors.redAccent,
-                                colorText: Colors.white,
-                              );
-                            }
-                          } catch (e) {
-                            print('Error during Edit Account: $e');
-                            if (e is dio.DioError) {
-                              print('Error response: ${e.response?.data}');
-                            }
-                          } finally {
-                            controller.isLoading.value = false;
+                          // Check for file uploads; ensure both local files and network URLs are considered
+                          if (controller.civilIdCard.value == null && controller
+                              .userProfile.value?.data?.attCivilid == null) {
+                            emptyFields.add('Civil ID Card');
                           }
-                        },
-                      );
-                    } else {
-                      Get.snackbar(
-                        'Gagal Edit Account',
-                        'Semua bidang harus diisi',
-                        backgroundColor: Colors.redAccent,
-                        colorText: Colors.white,
-                      );
-                    }
-                  }
-                },
-                child: Obx(() {
-                  if (controller.isLoading.value) {
-                    return LoadingAnimationWidget.newtonCradle(
-                      color: Colors.white,
-                      size: 100,
-                    );
-                  } else {
-                    return Text(
-                      controller.currentStep.value < 2 ? 'Next' : 'Save & Edit',
-                      style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold),
-                    );
-                  }
-                }),
+                          if (controller.taxIdCard.value == null && controller
+                              .userProfile.value?.data?.attTaxid == null) {
+                            emptyFields.add('Tax ID Card');
+                          }
+                          if (controller.licenseAaui.value == null && controller
+                              .userProfile.value?.data?.attLicense == null) {
+                            emptyFields.add('License AAUI');
+                          }
+                          if (controller.savingBook.value == null && controller
+                              .userProfile.value?.data?.attSaving == null) {
+                            emptyFields.add('Saving Book');
+                          }
+                          if (controller.profilePicture.value == null &&
+                              controller.userProfile.value?.data?.attProfile ==
+                                  null) {
+                            emptyFields.add('Profile Picture');
+                          }
+
+                          // If any fields are empty, show the error and return early
+                          if (emptyFields.isNotEmpty) {
+                            Get.snackbar(
+                              'Gagal Registrasi',
+                              'Semua bidang harus diisi: ${emptyFields.join(
+                                  ', ')}',
+                              backgroundColor: Colors.redAccent,
+                              colorText: Colors.white,
+                            );
+                            return;
+                          }
+
+                          // If all fields are validated and filled, show the alert
+                          QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.warning,
+                            title: 'Perhatian Penting!',
+                            text: 'Pastikan untuk memeriksa dan menyimpan data akun yang telah diubah sebelum meninggalkan halaman ini. Apakah Anda yakin ingin melanjutkan?',
+                            confirmBtnText: 'Simpan Perubahan',
+                            cancelBtnText: 'Keluar',
+                            confirmBtnColor: Colors.green,
+                            onConfirmBtnTap: () async {
+                              try {
+                                controller.isLoading.value = true;
+                                String dateOfBirth = DateFormat('yyyy-MM-dd')
+                                    .format(controller.selectedDate.value ??
+                                    DateTime.now());
+
+                                String? token = (await API.UpdateRegisterID(
+                                  name: controller.nameController.text,
+                                  address: controller.addressController.text,
+                                  place_of_birth: controller
+                                      .placeOfBirthController.text,
+                                  date_of_birth: dateOfBirth,
+                                  phone_number: controller.phoneNumberController
+                                      .text,
+                                  email: controller.emailController.text,
+                                  bank_account_name: controller
+                                      .bankAccountNameController.text ?? '',
+                                  bank_account_number: controller
+                                      .bankAccountNumberController.text,
+                                  bank_code: controller.selectedBank.value ??
+                                      '',
+                                  bank_name: controller.selectedBankName
+                                      .value ?? '',
+                                  bank_currency: controller.selectedCurency
+                                      .value ?? "",
+                                  civil_id: controller.civilIdController.text,
+                                  tax_id: controller.taxIdController.text,
+                                  corporate: controller.selectedType.value ??
+                                      '',
+                                  salutation: controller.selectedSalutation
+                                      .value ?? '',
+                                  zip_code: controller.zipCodeController.text,
+                                  province: controller.selectedProvince.value ??
+                                      '',
+                                  city: controller.selectedCity.value ?? '',
+                                  pic: controller.PicController.text ?? '',
+                                  gender: controller.selectedGender.value ?? '',
+                                  license_number: controller
+                                      .licenseNumberController.text,
+                                  password: controller.passwordController.text,
+                                  password_confirmation: controller
+                                      .passwordConfirmationController.text,
+                                  civil_id_card: controller.civilIdCard.value,
+                                  tax_id_card: controller.taxIdCard.value,
+                                  license_aaui: controller.licenseAaui.value,
+                                  saving_book: controller.savingBook.value,
+                                  siup: controller.siup.value,
+                                  profile_picture: controller.profilePicture
+                                      .value,
+                                )) as String?;
+
+                                // Handle response
+                                if (token != null) {
+                                  Get.offAllNamed(Routes.HOME);
+                                  print(
+                                      "Edit Account successful, received token: $token");
+                                } else {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Terjadi kesalahan saat Edit Account',
+                                    backgroundColor: Colors.redAccent,
+                                    colorText: Colors.white,
+                                  );
+                                }
+                              } catch (e) {
+                                print('Error during Edit Account: $e');
+                                if (e is dio.DioError) {
+                                  print('Error response: ${e.response?.data}');
+                                }
+                              } finally {
+                                controller.isLoading.value = false;
+                              }
+                            },
+                          );
+                        } else {
+                          Get.snackbar(
+                            'Gagal Edit Account',
+                            'Semua bidang harus diisi',
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                          );
+                        }
+                      }
+                    },
+                    child: Obx(() {
+                      if (controller.isLoading.value) {
+                        return LoadingAnimationWidget.newtonCradle(
+                          color: Colors.white,
+                          size: 100,
+                        );
+                      } else {
+                        return Text(
+                          controller.currentStep.value < 2
+                              ? 'Next'
+                              : 'Save & Edit',
+                          style: GoogleFonts.nunito(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        );
+                      }
+                    }),
+                  ),
+                ],
               ),
-            ],
-          ),
-        )
+            )
         ),
       ),
     );
@@ -328,13 +375,17 @@ class _EditAccountState extends State<EditAccount> {
                 alignment: Alignment.center,
                 padding: EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: controller.currentStep.value == index ? Colors.orange : Colors.transparent,
+                  color: controller.currentStep.value == index
+                      ? Colors.orange
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   stepTitles[index],
                   style: GoogleFonts.nunito(
-                    color: controller.currentStep.value == index ? Colors.white : Colors.black,
+                    color: controller.currentStep.value == index
+                        ? Colors.white
+                        : Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -386,14 +437,16 @@ class _EditAccountState extends State<EditAccount> {
               controller: controller.birthController,
               readOnly: true,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.calendar_month_rounded, color: Colors.orange),
+                prefixIcon: Icon(
+                    Icons.calendar_month_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Date of Birth',
                 labelStyle: GoogleFonts.nunito(),
                 hintStyle: GoogleFonts.nunito(),
                 hintText: controller.selectedDate.value == null
                     ? 'Select Date of Birth'
-                    : DateFormat('yyyy-MM-dd').format(controller.selectedDate.value!),
+                    : DateFormat('yyyy-MM-dd').format(
+                    controller.selectedDate.value!),
               ),
               onTap: () => controller.selectDate(DateTime.now()),
             ),
@@ -409,7 +462,8 @@ class _EditAccountState extends State<EditAccount> {
               controller: controller.placeOfBirthController,
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.maps_home_work_rounded, color: Colors.orange),
+                prefixIcon: Icon(
+                    Icons.maps_home_work_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: ' Place of birth',
                 labelStyle: GoogleFonts.nunito(),
@@ -450,15 +504,18 @@ class _EditAccountState extends State<EditAccount> {
 
                       return DropdownButtonFormField<String>(
                         value: savedValue,
-                        hint: Text('Select Salutation', style: GoogleFonts.nunito()),
-                        isExpanded: true, // Ensures dropdown uses the full width
+                        hint: Text('Select Salutation', style: GoogleFonts
+                            .nunito()),
+                        isExpanded: true,
+                        // Ensures dropdown uses the full width
                         items: controller.salutations.map((salutation) {
                           return DropdownMenuItem<String>(
                             value: salutation,
                             child: Text(
                               salutation,
                               style: GoogleFonts.nunito(),
-                              overflow: TextOverflow.ellipsis, // Handle text overflow
+                              overflow: TextOverflow.ellipsis,
+                              // Handle text overflow
                               maxLines: 1, // Limit text to a single line
                             ),
                           );
@@ -466,8 +523,10 @@ class _EditAccountState extends State<EditAccount> {
                         onChanged: (value) {
                           if (value != null) {
                             controller.selectedSalutation.value = value;
-                            LocalStorage.saveSelectedSalutation(value); // Save the selected value
-                            print("Selected Salutation: ${controller.selectedSalutation.value}");
+                            LocalStorage.saveSelectedSalutation(
+                                value); // Save the selected value
+                            print("Selected Salutation: ${controller
+                                .selectedSalutation.value}");
                           }
                         },
                         validator: (value) {
@@ -539,7 +598,8 @@ class _EditAccountState extends State<EditAccount> {
               controller: controller.emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.alternate_email_rounded, color: Colors.orange),
+                prefixIcon: Icon(
+                    Icons.alternate_email_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Email',
                 labelStyle: GoogleFonts.nunito(),
@@ -563,7 +623,8 @@ class _EditAccountState extends State<EditAccount> {
               controller: controller.phoneNumberController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.phone_android_rounded, color: Colors.orange),
+                prefixIcon: Icon(
+                    Icons.phone_android_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Phone Number',
                 labelStyle: GoogleFonts.nunito(),
@@ -596,8 +657,10 @@ class _EditAccountState extends State<EditAccount> {
                           value: '0', // Use '0' for Individual
                           groupValue: controller.selectedType.value,
                           onChanged: (value) {
-                            controller.selectedType.value = value ?? '0'; // Default to '0'
-                            print("Individual : ${controller.selectedType.value}");
+                            controller.selectedType.value =
+                                value ?? '0'; // Default to '0'
+                            print("Individual : ${controller.selectedType
+                                .value}");
                           },
                         ),
                       ),
@@ -609,8 +672,10 @@ class _EditAccountState extends State<EditAccount> {
                           value: '1',
                           groupValue: controller.selectedType.value,
                           onChanged: (value) {
-                            controller.selectedType.value = value ?? '1'; // Default to '1'
-                            print("Corporate : ${controller.selectedType.value}");
+                            controller.selectedType.value =
+                                value ?? '1'; // Default to '1'
+                            print(
+                                "Corporate : ${controller.selectedType.value}");
                           },
                         ),
                       ),
@@ -694,32 +759,42 @@ class _EditAccountState extends State<EditAccount> {
                         );
                       } else if (snapshot.hasError) {
                         return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
+                      } else
+                      if (!snapshot.hasData || snapshot.data!.data == null ||
+                          snapshot.data!.data!.isEmpty) {
                         return Center(child: Text('No data available'));
                       } else {
                         // Extract the province data from the dictionary
                         Map<String, String> provinceMap = snapshot.data!.data!;
-                        List<MapEntry<String, String>> provinceEntries = provinceMap.entries.toList();
+                        List<MapEntry<String,
+                            String>> provinceEntries = provinceMap.entries
+                            .toList();
 
                         return Obx(() {
                           // Access the saved value from the controller
-                          String? savedValue = controller.selectedProvince.value;
+                          String? savedValue = controller.selectedProvince
+                              .value;
 
                           // Ensure the saved value is in the list of valid province keys
-                          if (savedValue != null && !provinceMap.containsKey(savedValue)) {
+                          if (savedValue != null &&
+                              !provinceMap.containsKey(savedValue)) {
                             savedValue = null; // Reset if not found
                           }
 
                           return DropdownButtonFormField<String>(
-                            value: savedValue, // Set the selected value
-                            hint: Text('Select Province', style: GoogleFonts.nunito()),
+                            value: savedValue,
+                            // Set the selected value
+                            hint: Text(
+                                'Select Province', style: GoogleFonts.nunito()),
                             items: provinceEntries.map((entry) {
                               return DropdownMenuItem<String>(
-                                value: entry.key, // Use province code as the value
+                                value: entry.key,
+                                // Use province code as the value
                                 child: Text(
                                   entry.value, // Display the full province name
                                   style: GoogleFonts.nunito(),
-                                  overflow: TextOverflow.ellipsis, // Handle overflow
+                                  overflow: TextOverflow.ellipsis,
+                                  // Handle overflow
                                   maxLines: 1, // Limit text to a single line
                                 ),
                               );
@@ -727,8 +802,10 @@ class _EditAccountState extends State<EditAccount> {
                             onChanged: (value) {
                               if (value != null) {
                                 controller.selectedProvince.value = value;
-                                LocalStorage.saveSelectedCity(value); // Save the selected province code
-                                print("Selected Province Code: ${controller.selectedProvince.value}");
+                                LocalStorage.saveSelectedCity(
+                                    value); // Save the selected province code
+                                print("Selected Province Code: ${controller
+                                    .selectedProvince.value}");
                               }
                             },
                             validator: (value) {
@@ -776,7 +853,8 @@ class _EditAccountState extends State<EditAccount> {
                       String? savedValue = controller.selectedCity.value;
 
                       return DropdownButtonFormField<String>(
-                        value: savedValue, // Set the selected value
+                        value: savedValue,
+                        // Set the selected value
                         hint: Text('Select City', style: GoogleFonts.nunito()),
                         items: controller.cities.entries.map((entry) {
                           return DropdownMenuItem<String>(
@@ -784,7 +862,8 @@ class _EditAccountState extends State<EditAccount> {
                             child: Text(
                               entry.value, // Display the city name
                               style: GoogleFonts.nunito(),
-                              overflow: TextOverflow.ellipsis, // Handle overflow
+                              overflow: TextOverflow.ellipsis,
+                              // Handle overflow
                               maxLines: 1, // Limit text to a single line
                             ),
                           );
@@ -792,8 +871,10 @@ class _EditAccountState extends State<EditAccount> {
                         onChanged: (value) {
                           if (value != null) {
                             controller.selectedCity.value = value;
-                            LocalStorage.saveSelectedProvince(value); // Save the selected ID
-                            print("Selected City ID: ${controller.selectedCity.value}");
+                            LocalStorage.saveSelectedProvince(
+                                value); // Save the selected ID
+                            print("Selected City ID: ${controller.selectedCity
+                                .value}");
                           }
                         },
                         validator: (value) {
@@ -871,13 +952,15 @@ class _EditAccountState extends State<EditAccount> {
               style: GoogleFonts.nunito(),
               controller: controller.civilIdController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.credit_card_rounded, color: Colors.orange),
+                prefixIcon: Icon(
+                    Icons.credit_card_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'NIK / Civil ID',
                 labelStyle: GoogleFonts.nunito(),
               ),
               keyboardType: TextInputType.number,
-              maxLength: 16, // Limits the input to 16 characters
+              maxLength: 16,
+              // Limits the input to 16 characters
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly, // Allows only digits
               ],
@@ -903,13 +986,15 @@ class _EditAccountState extends State<EditAccount> {
               style: GoogleFonts.nunito(),
               controller: controller.taxIdController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.credit_card_rounded, color: Colors.orange),
+                prefixIcon: Icon(
+                    Icons.credit_card_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'NPWP / TaxID',
                 labelStyle: GoogleFonts.nunito(),
               ),
               keyboardType: TextInputType.number,
-              maxLength: 16, // Limits the input to 16 characters
+              maxLength: 16,
+              // Limits the input to 16 characters
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly, // Allows only digits
               ],
@@ -961,20 +1046,24 @@ class _EditAccountState extends State<EditAccount> {
                       String? savedValue = controller.selectedCurency.value;
 
                       // Ensure the saved value is in the list of valid currency keys
-                      if (savedValue != null && !controller.currencies.containsKey(savedValue)) {
+                      if (savedValue != null &&
+                          !controller.currencies.containsKey(savedValue)) {
                         savedValue = null; // Reset if not found
                       }
 
                       return DropdownButtonFormField<String>(
-                        value: savedValue, // Set the selected value
-                        hint: Text('Select Currency', style: GoogleFonts.nunito()),
+                        value: savedValue,
+                        // Set the selected value
+                        hint: Text('Select Currency', style: GoogleFonts
+                            .nunito()),
                         items: controller.currencies.entries.map((entry) {
                           return DropdownMenuItem<String>(
                             value: entry.key, // Use currency code as the value
                             child: Text(
                               entry.value, // Display the full currency name
                               style: GoogleFonts.nunito(),
-                              overflow: TextOverflow.ellipsis, // Handle overflow
+                              overflow: TextOverflow.ellipsis,
+                              // Handle overflow
                               maxLines: 1, // Limit text to a single line
                             ),
                           );
@@ -982,8 +1071,10 @@ class _EditAccountState extends State<EditAccount> {
                         onChanged: (value) {
                           if (value != null) {
                             controller.selectedCurency.value = value;
-                            LocalStorage.saveSelectedCurrency(value); // Save the selected currency code
-                            print("Selected Currency Code: ${controller.selectedCurency.value}");
+                            LocalStorage.saveSelectedCurrency(
+                                value); // Save the selected currency code
+                            print("Selected Currency Code: ${controller
+                                .selectedCurency.value}");
                           }
                         },
                         validator: (value) {
@@ -1030,24 +1121,30 @@ class _EditAccountState extends State<EditAccount> {
                       String? savedID = controller.selectedBank.value;
 
                       // Ensure the saved value is in the list of valid bank keys
-                      if (savedID != null && !controller.banks.containsKey(savedID)) {
+                      if (savedID != null &&
+                          !controller.banks.containsKey(savedID)) {
                         savedID = null; // Reset if not found
                       }
 
                       return DropdownButtonFormField<String>(
-                        value: savedID, // Set the selected value
+                        value: savedID,
+                        // Set the selected value
                         hint: Text('Select Bank', style: GoogleFonts.nunito()),
                         items: controller.banks.entries.map((entry) {
                           return DropdownMenuItem<String>(
                             value: entry.key, // Use bank ID as the value
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.7, // Limit width
+                                maxWidth: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .width * 0.7, // Limit width
                               ),
                               child: Text(
                                 entry.value, // Display bank name
                                 style: GoogleFonts.nunito(),
-                                overflow: TextOverflow.ellipsis, // Handle long text
+                                overflow: TextOverflow
+                                    .ellipsis, // Handle long text
                               ),
                             ),
                           );
@@ -1055,11 +1152,17 @@ class _EditAccountState extends State<EditAccount> {
                         onChanged: (value) {
                           if (value != null) {
                             String? selectedBankName = controller.banks[value];
-                            controller.selectedBank.value = value; // Save selected bank ID
-                            controller.selectedBankName.value = selectedBankName ?? ''; // Save selected bank name
-                            LocalStorage.saveSelectedBank(value); // Save the selected bank ID
-                            print("Selected Bank ID: ${controller.selectedBank.value}");
-                            print("Selected Bank Name: ${controller.selectedBankName.value}");
+                            controller.selectedBank.value =
+                                value; // Save selected bank ID
+                            controller.selectedBankName.value =
+                                selectedBankName ??
+                                    ''; // Save selected bank name
+                            LocalStorage.saveSelectedBank(
+                                value); // Save the selected bank ID
+                            print("Selected Bank ID: ${controller.selectedBank
+                                .value}");
+                            print("Selected Bank Name: ${controller
+                                .selectedBankName.value}");
                           }
                         },
                         validator: (value) {
@@ -1089,7 +1192,8 @@ class _EditAccountState extends State<EditAccount> {
               style: GoogleFonts.nunito(),
               controller: controller.bankAccountNumberController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.comment_bank_rounded, color: Colors.orange),
+                prefixIcon: Icon(
+                    Icons.comment_bank_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Bank Account',
                 labelStyle: GoogleFonts.nunito(),
@@ -1113,7 +1217,8 @@ class _EditAccountState extends State<EditAccount> {
               style: GoogleFonts.nunito(),
               controller: controller.bankAccountNameController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.comment_bank_rounded, color: Colors.orange),
+                prefixIcon: Icon(
+                    Icons.comment_bank_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Bank Account Holder',
                 labelStyle: GoogleFonts.nunito(),
@@ -1136,87 +1241,87 @@ class _EditAccountState extends State<EditAccount> {
 
   Widget _buildImageUploadSection(SettingController controller) {
     return FutureBuilder<Verifikasi?>(
-      future: API.VerifikasiID(), // Corrected method name
+      future: API.VerifikasiID(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data == null) {
           return Center(child: Text('No data available'));
         } else {
-          // Extract the profile data
           Verifikasi? userProfile = snapshot.data;
           Data? userData = userProfile?.data;
 
-          // Construct URLs for each image if available
           String? profileImageUrl = userData?.attProfile != null
-              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!.attProfile}'
+              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!
+              .attProfile}'
               : null;
           String? civilIdImageUrl = userData?.attCivilid != null
-              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!.attCivilid}'
+              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!
+              .attCivilid}'
               : null;
           String? taxIdImageUrl = userData?.attTaxid != null
-              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!.attTaxid}'
+              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!
+              .attTaxid}'
               : null;
           String? licenseImageUrl = userData?.attLicense != null
-              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!.attLicense}'
+              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!
+              .attLicense}'
               : null;
           String? savingImageUrl = userData?.attSaving != null
-              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!.attSaving}'
+              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!
+              .attSaving}'
               : null;
           String? siupImageUrl = userData?.attSiup != null
-              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!.attSiup}'
+              ? 'https://agencyapps.megainsurance.co.id/storage/${userData!
+              .attSiup}'
               : null;
 
           return Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildImageUploadField(
                 controller: controller,
                 fieldName: 'civilIdCard',
                 label: 'Photo KTP / Civil ID',
                 imageFile: controller.civilIdCard,
-                networkImageUrl: civilIdImageUrl,
+                imageUrl: civilIdImageUrl,
               ),
               _buildImageUploadField(
                 controller: controller,
                 fieldName: 'taxIdCard',
                 label: 'Photo NPWP / Tax ID',
                 imageFile: controller.taxIdCard,
-                networkImageUrl: taxIdImageUrl,
+                imageUrl: taxIdImageUrl,
               ),
               _buildImageUploadField(
                 controller: controller,
                 fieldName: 'savingBook',
                 label: 'Photo Buku / Saving Book',
                 imageFile: controller.savingBook,
-                networkImageUrl: savingImageUrl,
+                imageUrl: savingImageUrl,
               ),
               _buildImageUploadField(
                 controller: controller,
                 fieldName: 'licenseAaui',
                 label: 'Photo License / License Certificate',
                 imageFile: controller.licenseAaui,
-                networkImageUrl: licenseImageUrl,
+                imageUrl: licenseImageUrl,
               ),
-              if (controller.selectedType.value == '0')
+              if (controller.selectedType.value == '1')
                 _buildImageUploadField(
                   controller: controller,
                   fieldName: 'siup',
-                  label: 'Photo SIUP / Business License',
+                  label: 'Upload Business Permit',
                   imageFile: controller.siup,
-                  networkImageUrl: siupImageUrl,
+                  imageUrl: siupImageUrl,
                 ),
               _buildImageUploadField(
                 controller: controller,
                 fieldName: 'profilePicture',
                 label: 'Profile Picture',
                 imageFile: controller.profilePicture,
-                networkImageUrl: profileImageUrl,
+                imageUrl: profileImageUrl,
               ),
             ],
           );
@@ -1225,61 +1330,200 @@ class _EditAccountState extends State<EditAccount> {
     );
   }
 
+
   Widget _buildImageUploadField({
     required SettingController controller,
     required String fieldName,
     required String label,
     required Rx<File?> imageFile,
-    String? networkImageUrl, // New parameter to accept network image URL
+    String? imageUrl,
   }) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.nunito()),
+        Text(
+          label,
+          style: GoogleFonts.nunito(),
+        ),
         GestureDetector(
-          onTap: () => controller.showImageSourceDialog(fieldName),
+          onTap: () {
+            if (fieldName == 'profilePicture') {
+              // Directly open the camera for profile picture
+              controller.pickImage(ImageSource.camera, fieldName);
+            } else {
+              // Show the file source dialog for other fields
+              controller.showImageSourceDialog(fieldName);
+            }
+          },
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300),
             ),
             width: double.infinity,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  imageFile.value != null
-                      ? Image.file(
-                    imageFile.value!,
-                    width: 300,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  )
-                      : networkImageUrl != null // Check if network image URL is available
-                      ? Image.network(
-                    networkImageUrl,
-                    width: 300,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  )
-                      : Icon(Icons.camera_alt, size: 100, color: Colors.grey),
-                  SizedBox(height: 8),
+                  Obx(() {
+                    if (imageFile.value != null) {
+                      return _buildFilePreview(imageFile.value!, controller);
+                    } else if (imageUrl != null) {
+                      if (imageUrl.endsWith('.pdf')) {
+                        return Row(
+                          children: [
+                            Icon(Icons.picture_as_pdf, size: 40,
+                                color: Colors.red),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'PDF File: ${imageUrl
+                                    .split('/')
+                                    .last}',
+                                style: TextStyle(fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.download),
+                              onPressed: () async {
+                                await _downloadFile(imageUrl, fieldName);
+                              },
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Image.network(
+                          imageUrl,
+                          width: 300,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Icon(Icons.error, color: Colors.red),
+                        );
+                      }
+                    } else {
+                      return Icon(
+                        Icons.camera_alt,
+                        size: 100,
+                        color: Colors.grey,
+                      );
+                    }
+                  }),
+                  const SizedBox(height: 8),
                   Text(
-                    imageFile.value != null ? 'Change Photo' : 'Upload Photo',
-                    style: GoogleFonts.nunito(fontSize: 16, color: Colors.blue),
+                    imageFile.value != null ? 'Change File' : 'Upload File',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      color: Colors.blue,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
       ],
     );
   }
 }
+  Future<void> _downloadFile(String url, String fileName) async {
+    try {
+      // Request storage permission
 
+      // Get the "Downloads" directory path
+      final directory = await getDownloadsDirectory();
+      if (directory == null) {
+        Get.snackbar(
+          'Error',
+          'Could not access the downloads directory.',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // Ensure the file name has the correct .pdf extension
+      if (!fileName.endsWith('.pdf')) {
+        fileName = '$fileName.pdf';
+      }
+
+      // Construct the full file path
+      final filePath = '${directory.path}/$fileName';
+
+      // Start the file download using Dio
+      final dio = Dio();
+      final response = await dio.download(url, filePath);
+
+      if (response.statusCode == 200) {
+        // Show Snackbar with an action button to open the file
+        Get.snackbar(
+          'Download Completed',
+          'File downloaded successfully to $filePath',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar(
+          'Download Failed',
+          'Failed to download the file.',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error downloading file: $e');
+      Get.snackbar(
+        'Download Error',
+        'An error occurred while downloading the file.',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+
+  Future<Directory?> getDownloadsDirectory() async {
+    if (Platform.isAndroid) {
+      return Directory('/storage/emulated/0/Download'); // Common Downloads directory path for Android
+    } else if (Platform.isIOS) {
+      return await getApplicationDocumentsDirectory(); // iOS does not have a traditional "Downloads" folder
+    }
+    return null;
+  }
+
+
+
+
+  Widget _buildFilePreview(File file, SettingController controller) {
+  if (file.path.endsWith('.pdf')) {
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.picture_as_pdf,
+          size: 100,
+          color: Colors.red,
+        ),
+        SizedBox(height: 10),
+        Text(
+          'PDF File Selected',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  } else {
+    // Display the image preview for non-PDF files
+    return Image.file(
+      file,
+      width: 300,
+      height: 200,
+      fit: BoxFit.cover,
+    );
+  }
+}
 class LocalStorage {
   // General method to save a value
   static Future<void> saveValue(String key, String value) async {

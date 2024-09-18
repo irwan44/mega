@@ -150,154 +150,141 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 backgroundColor: controller.currentStep.value < 2 ? Colors.blue : Colors.green,
                 padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
               ),
-              onPressed: () async {
-                if (controller.currentStep.value < 2) {
-                  controller.nextStep();
-                } else {
-                  HapticFeedback.lightImpact();
+                onPressed: () async {
+                  if (controller.currentStep.value < 2) {
+                    controller.nextStep();
+                  } else {
+                    HapticFeedback.lightImpact();
 
-                  // Check if all forms are valid
-                  if (controller.formKey1.currentState?.validate() == true &&
-                      controller.formKey2.currentState?.validate() == true &&
-                      controller.formKey3.currentState?.validate() == true) {
-                    try {
-                      // Check for any empty required fields
-                      List<String> emptyFields = [];
+                    // Check if all forms are valid
+                    if (controller.formKey1.currentState?.validate() == true &&
+                        controller.formKey2.currentState?.validate() == true &&
+                        controller.formKey3.currentState?.validate() == true) {
+                      try {
+                        // Check for any empty required fields
+                        List<String> emptyFields = [];
 
-                      // Validate fields
-                      if (controller.nameController.text.isEmpty) emptyFields.add('Name');
-                      if (controller.addressController.text.isEmpty) emptyFields.add('Address');
-                      if (controller.selectedDate.value == null) emptyFields.add('Date of Birth');
-                      if (controller.placeOfBirthController.text.isEmpty) emptyFields.add('Place of Birth');
-                      if (controller.emailController.text.isEmpty) emptyFields.add('Email');
-                      if (controller.civilIdCard.value == null) emptyFields.add('Civil ID Card');
-                      if (controller.taxIdCard.value == null) emptyFields.add('Tax ID Card');
-                      if (controller.licenseAaui.value == null) emptyFields.add('License AAUI');
-                      if (controller.savingBook.value == null) emptyFields.add('Saving Book');
-                      if (controller.profilePicture.value == null) emptyFields.add('Profile Picture');
+                        // Validate fields
+                        if (controller.nameController.text.isEmpty) emptyFields.add('Name');
+                        if (controller.addressController.text.isEmpty) emptyFields.add('Address');
+                        if (controller.selectedDate.value == null) emptyFields.add('Date of Birth');
+                        if (controller.placeOfBirthController.text.isEmpty) emptyFields.add('Place of Birth');
+                        if (controller.emailController.text.isEmpty) emptyFields.add('Email');
+                        if (controller.civilIdCard.value == null) emptyFields.add('Civil ID Card');
+                        if (controller.taxIdCard.value == null) emptyFields.add('Tax ID Card');
+                        if (controller.licenseAaui.value == null) emptyFields.add('License AAUI');
+                        if (controller.savingBook.value == null) emptyFields.add('Saving Book');
+                        if (controller.profilePicture.value == null) emptyFields.add('Profile Picture');
 
-                      // If there are empty fields, show an error message
-                      if (emptyFields.isNotEmpty) {
-                        Get.snackbar(
-                          'Gagal Registrasi',
-                          'Semua bidang harus diisi: ${emptyFields.join(', ')}',
-                          backgroundColor: Colors.redAccent,
-                          colorText: Colors.white,
+                        // If there are empty fields, show an error message
+                        if (emptyFields.isNotEmpty) {
+                          Get.snackbar(
+                            'Gagal Registrasi',
+                            'Semua bidang harus diisi: ${emptyFields.join(', ')}',
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                          );
+                          return; // Exit the function if there are empty fields
+                        }
+
+                        // Cek jika siup masih null, gunakan file default
+                        if (controller.siup.value == null) {
+                          await controller.loadDefaultSiup(); // Panggil fungsi untuk memuat file default
+                        }
+
+                        // Prepare data for API request
+                        String dateOfBirth = DateFormat('yyyy-MM-dd').format(controller.selectedDate.value ?? DateTime.now());
+
+                        // Print values being sent to the API
+                        print('Sending the following data to the API:');
+                        // Print all data...
+
+                        controller.isLoading.value = true;
+
+                        Registrasi? registrationResponse = await API.RegisterID(
+                          name: controller.nameController.text,
+                          address: controller.addressController.text,
+                          place_of_birth: controller.placeOfBirthController.text,
+                          date_of_birth: dateOfBirth,
+                          phone_number: controller.phoneNumberController.text,
+                          email: controller.emailController.text,
+                          bank_account_name: controller.bankAccountNameController.text,
+                          bank_account_number: controller.bankAccountNumberController.text,
+                          bank_code: controller.selectedBank.value ?? '',
+                          bank_name: controller.selectedBankName.value ?? '',
+                          bank_currency: controller.selectedCurency.value ?? '',
+                          civil_id: controller.civilIdController.text,
+                          tax_id: controller.taxIdController.text,
+                          corporate: controller.selectedType.value ?? '',
+                          salutation: controller.selectedSalutation.value ?? '',
+                          zip_code: controller.zipCodeController.text,
+                          province: controller.selectedProvince.value ?? '',
+                          city: controller.selectedCity.value ?? '',
+                          pic: controller.PicController.text,
+                          gender: controller.selectedGender.value ?? '',
+                          license_number: controller.licenseNumberController.text,
+                          password: controller.passwordController.text,
+                          password_confirmation: controller.passwordConfirmationController.text,
+                          civil_id_card: controller.civilIdCard.value,
+                          tax_id_card: controller.taxIdCard.value,
+                          license_aaui: controller.licenseAaui.value,
+                          saving_book: controller.savingBook.value,
+                          siup: controller.siup.value,
+                          profile_picture: controller.profilePicture.value,
                         );
-                        return; // Exit the function if there are empty fields
-                      }
 
-                      // Cek jika siup masih null, gunakan file default
-                      if (controller.siup.value == null) {
-                        await controller.loadDefaultSiup(); // Panggil fungsi untuk memuat file default
-                      }
+                        // Handle response
+                        if (registrationResponse != null && registrationResponse.data != null) {
+                          String token = registrationResponse.data!.token ?? '';
+                          print("Registration successful, received token: $token");
+                          Get.offAllNamed(Routes.AUTHENTICATION);
+                        } else {
+                          // Handle unexpected errors or null response
+                          Get.snackbar(
+                            'Registration Failed',
+                            'An unexpected error occurred. Please try again.',
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                          );
+                        }
+                      } catch (e) {
+                        print('Error during registration: $e');
+                        if (e is dio.DioError) {
+                          if (e.response?.statusCode == 422) {
+                            try {
+                              final responseData = e.response?.data;
+                              String errorMessage = '';
 
-                      // Prepare data for API request
-                      String dateOfBirth = DateFormat('yyyy-MM-dd').format(controller.selectedDate.value ?? DateTime.now());
+                              if (responseData is Map<String, dynamic>) {
+                                if (responseData.containsKey('message')) {
+                                  errorMessage = responseData['message'];
+                                }
 
-                      // Print values being sent to the API
-                      print('Sending the following data to the API:');
-                      print('Name: ${controller.nameController.text}');
-                      print('Address: ${controller.addressController.text}');
-                      print('Place of Birth: ${controller.placeOfBirthController.text}');
-                      print('Date of Birth: $dateOfBirth');
-                      print('Phone Number: ${controller.phoneNumberController.text}');
-                      print('Email: ${controller.emailController.text}');
-                      print('Bank Account Name: ${controller.bankAccountNameController.text}');
-                      print('Bank Account Number: ${controller.bankAccountNumberController.text}');
-                      print('Bank Code: ${controller.selectedBank.value}');
-                      print('Bank Name: ${controller.selectedBankName.value}');
-                      print('Bank Currency: ${controller.selectedCurency.value}');
-                      print('Civil ID: ${controller.civilIdController.text}');
-                      print('Tax ID: ${controller.taxIdController.text}');
-                      print('Corporate: ${controller.selectedType.value}');
-                      print('Salutation: ${controller.selectedSalutation.value}');
-                      print('ZIP Code: ${controller.zipCodeController.text}');
-                      print('Province: ${controller.selectedProvince.value}');
-                      print('City: ${controller.selectedCity.value}');
-                      print('PIC: ${controller.PicController.text}');
-                      print('Gender: ${controller.selectedGender.value}');
-                      print('License Number: ${controller.licenseNumberController.text}');
-                      print('Password: ${controller.passwordController.text}');
-                      print('Password Confirmation: ${controller.passwordConfirmationController.text}');
-                      print('Civil ID Card: ${controller.civilIdCard.value?.path}');
-                      print('Tax ID Card: ${controller.taxIdCard.value?.path}');
-                      print('License AAUI: ${controller.licenseAaui.value?.path}');
-                      print('Saving Book: ${controller.savingBook.value?.path}');
-                      print('SIUP: ${controller.siup.value?.path}');
-                      print('Profile Picture: ${controller.profilePicture.value?.path}');
-
-                      controller.isLoading.value = true;
-
-                      Registrasi? registrationResponse = await API.RegisterID(
-                        name: controller.nameController.text,
-                        address: controller.addressController.text,
-                        place_of_birth: controller.placeOfBirthController.text,
-                        date_of_birth: dateOfBirth,
-                        phone_number: controller.phoneNumberController.text,
-                        email: controller.emailController.text,
-                        bank_account_name: controller.bankAccountNameController.text,
-                        bank_account_number: controller.bankAccountNumberController.text,
-                        bank_code: controller.selectedBank.value ?? '',
-                        bank_name: controller.selectedBankName.value ?? '',
-                        bank_currency: controller.selectedCurency.value ?? '',
-                        civil_id: controller.civilIdController.text,
-                        tax_id: controller.taxIdController.text,
-                        corporate: controller.selectedType.value ?? '',
-                        salutation: controller.selectedSalutation.value ?? '',
-                        zip_code: controller.zipCodeController.text,
-                        province: controller.selectedProvince.value ?? '',
-                        city: controller.selectedCity.value ?? '',
-                        pic: controller.PicController.text,
-                        gender: controller.selectedGender.value ?? '',
-                        license_number: controller.licenseNumberController.text,
-                        password: controller.passwordController.text,
-                        password_confirmation: controller.passwordConfirmationController.text,
-                        civil_id_card: controller.civilIdCard.value,
-                        tax_id_card: controller.taxIdCard.value,
-                        license_aaui: controller.licenseAaui.value,
-                        saving_book: controller.savingBook.value,
-                        siup: controller.siup.value,
-                        profile_picture: controller.profilePicture.value,
-                      );
-
-                      // Handle response
-                      if (registrationResponse != null && registrationResponse.data != null) {
-                        String token = registrationResponse.data!.token ?? '';
-                        print("Registration successful, received token: $token");
-                        Get.offAllNamed(Routes.AUTHENTICATION);
-                      } else {
-                      }
-                    } catch (e) {
-                      print('Error during registration: $e');
-                      if (e is dio.DioError) {
-                        if (e.response?.statusCode == 422) {
-                          try {
-                            final responseData = e.response?.data;
-                            String errorMessage = '';
-
-                            if (responseData is Map<String, dynamic>) {
-                              if (responseData.containsKey('message')) {
-                                errorMessage = responseData['message'];
+                                if (responseData['data'] != null && responseData['data'] is List) {
+                                  List<dynamic> dataList = responseData['data'];
+                                  // Combine all messages from dataList if needed
+                                  errorMessage += '\n' + dataList.join('\n');
+                                }
                               }
-
-                              if (responseData['data'] != null && responseData['data'] is List) {
-                                List<dynamic> dataList = responseData['data'];
-                                // errorMessage += '\n' + dataList.join('\n');
-                              }
+                              Get.snackbar(
+                                'Registration Failed',
+                                errorMessage.isNotEmpty ? errorMessage : 'Data process failed! Incorrect Currency!',
+                                backgroundColor: Colors.redAccent,
+                                colorText: Colors.white,
+                              );
+                            } catch (e) {
+                              print('Error parsing error response: $e');
+                              Get.snackbar(
+                                'Error',
+                                'Terjadi kesalahan saat parsing error response',
+                                backgroundColor: Colors.redAccent,
+                                colorText: Colors.white,
+                              );
                             }
-
-                            Get.snackbar(
-                              'Registration Failed',
-                              errorMessage,
-                              backgroundColor: Colors.redAccent,
-                              colorText: Colors.white,
-                            );
-                          } catch (e) {
-                            print('Error parsing error response: $e');
+                          } else {
                             Get.snackbar(
                               'Error',
-                              'Terjadi kesalahan saat parsing error response',
+                              'Terjadi kesalahan yang tidak diketahui',
                               backgroundColor: Colors.redAccent,
                               colorText: Colors.white,
                             );
@@ -305,28 +292,26 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         } else {
                           Get.snackbar(
                             'Error',
-                            'Terjadi kesalahan yang tidak diketahui',
+                            'Terjadi kesalahan saat registrasi',
                             backgroundColor: Colors.redAccent,
                             colorText: Colors.white,
                           );
                         }
-                      } else {
+                      } finally {
+                        // Reset loading state
+                        controller.isLoading.value = false;
                       }
-                    } finally {
-                      // Reset loading state
-                      controller.isLoading.value = false;
+                    } else {
+                      Get.snackbar(
+                        'Form Error',
+                        'Please fill all the required forms correctly.',
+                        backgroundColor: Colors.redAccent,
+                        colorText: Colors.white,
+                      );
                     }
-                  } else {
-                    Get.snackbar(
-                      'Form Error',
-                      'Please fill all the required forms correctly.',
-                      backgroundColor: Colors.redAccent,
-                      colorText: Colors.white,
-                    );
                   }
-                }
-              },
-              child: Obx(() {
+                },
+                child: Obx(() {
                 if (controller.isLoading.value) {
                   return LoadingAnimationWidget.newtonCradle(
                     color: Colors.white,
@@ -1135,7 +1120,6 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 return null;
               },
             ),
-
           ),
           SizedBox(height: 10),
           Container(
@@ -1476,9 +1460,6 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
     });
   }
 
-
-
-
   Widget _buildImageUploadField({
     required AuthenticationController controller,
     required String fieldName,
@@ -1493,7 +1474,15 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           style: GoogleFonts.nunito(),
         ),
         GestureDetector(
-          onTap: () => controller.showImageSourceDialog(fieldName),
+          onTap: () {
+            if (fieldName == 'profilePicture') {
+              // Directly open the camera for profile picture
+              controller.pickImage(ImageSource.camera, fieldName);
+            } else {
+              // Show the file source dialog for other fields
+              controller.showImageSourceDialog(fieldName);
+            }
+          },
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -1534,35 +1523,26 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
     );
   }
 
+
   Widget _buildFilePreview(File file, AuthenticationController controller) {
     if (file.path.endsWith('.pdf')) {
-      return FutureBuilder<PdfPageImage?>(
-        future: controller.renderPdfPage(file),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return Text(
-              'Error loading PDF preview',
-              style: TextStyle(color: Colors.red),
-            );
-          } else if (!snapshot.hasData || snapshot.data == null) {
-            return Text(
-              'No preview available',
-              style: TextStyle(color: Colors.grey),
-            );
-          } else {
-            // Use Image.memory to display the bytes of the image
-            return Image.memory(
-              snapshot.data! as Uint8List, // Convert the ByteData to Uint8List
-              width: 300,
-              height: 200,
-              fit: BoxFit.cover,
-            );
-          }
-        },
+      return const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.picture_as_pdf,
+            size: 100,
+            color: Colors.red,
+          ),
+          SizedBox(height: 10),
+          Text(
+            'PDF File Selected',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
       );
     } else {
+      // Display the image preview for non-PDF files
       return Image.file(
         file,
         width: 300,
@@ -1571,8 +1551,6 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
       );
     }
   }
-
-
 
   Future<PdfPageImage?> renderPdfPage(File file) async {
     try {
@@ -1590,25 +1568,19 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
       return null;
     }
   }
-
-
-
 }
 
 class LocalStorage {
-  // General method to save a value
   static Future<void> saveValue(String key, String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, value);
   }
 
-  // General method to get a value
   static Future<String?> getValue(String key) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(key);
   }
 
-  // Specific methods for saving and retrieving values
   static Future<void> saveSelectedBank(String bank) async {
     await saveValue('selectedBank', bank);
   }

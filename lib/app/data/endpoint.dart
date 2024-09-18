@@ -392,6 +392,7 @@ class API {
     required File? siup,
     required File? profile_picture,
   }) async {
+    // Prepare form data
     final formData = dio.FormData.fromMap({
       "name": name,
       "address": address,
@@ -455,7 +456,9 @@ class API {
     });
 
     try {
-      final token = Publics.controller.getTokenRegis.value ?? '';
+      // Retrieve the token from local storage
+      final token = Publics.controller.getToken.value ?? '';
+      var data = {"token": token};
       print('Token: $token');
 
       var response = await dio.Dio().post(
@@ -517,6 +520,7 @@ class API {
       throw e;
     }
   }
+
 
 
 //Beda
