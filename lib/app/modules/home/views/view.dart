@@ -585,7 +585,7 @@ class _ViewHomeState extends State<ViewHome> {
                 width: double.infinity, // Membuat tombol menjadi selebar mungkin
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Get.toNamed(Routes.TESTPAGE);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
