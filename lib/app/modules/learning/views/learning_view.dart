@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/data_endpoint/learning.dart';
 import '../../../data/endpoint.dart';
 import 'detail_learning_view.dart';
+import 'package:html/parser.dart' as html;
 
 class LearningView extends StatefulWidget {
   const LearningView({super.key});
@@ -462,7 +463,13 @@ class LearningCard extends StatelessWidget {
   }
 
   String _stripHtmlIfNeeded(String htmlString) {
+    // Remove HTML tags
     final regex = RegExp(r'<[^>]*>');
-    return htmlString.replaceAll(regex, '');
+    String strippedString = htmlString.replaceAll(regex, '');
+
+    // Decode HTML entities using the parser
+    String decodedString = html.parse(strippedString).documentElement?.text ?? '';
+
+    return decodedString;
   }
 }

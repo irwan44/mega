@@ -124,6 +124,10 @@ class TestProvider extends ChangeNotifier {
     return answers.length == questions.length;
   }
 
+  Future<void> QuizRefresh(int quizId, int userId) async {
+    await refreshQuestions();
+  }
+
   Future<void> submitQuiz(int quizId, int userId) async {
     if (!areAllQuestionsAnswered()) {
       Get.dialog(

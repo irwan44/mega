@@ -268,12 +268,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                           print("Registration successful, received token: $token");
                           Get.offAllNamed(Routes.AUTHENTICATION);
                         } else {
-                          Get.snackbar(
-                            'Registration Failed',
-                            'An unexpected error occurred. Please try again.',
-                            backgroundColor: Colors.redAccent,
-                            colorText: Colors.white,
-                          );
+                          // Get.snackbar(
+                          //   'Registration Failed',
+                          //   'An unexpected error occurred. Please try again.',
+                          //   backgroundColor: Colors.redAccent,
+                          //   colorText: Colors.white,
+                          // );
                         }
                       } catch (e) {
                         print('Error during registration: $e');
@@ -287,12 +287,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         controller.isLoading.value = false;
                       }
                     } else {
-                      Get.snackbar(
-                        'Form Error',
-                        'Please fill all the required forms correctly.',
-                        backgroundColor: Colors.redAccent,
-                        colorText: Colors.white,
-                      );
+                      // Get.snackbar(
+                      //   'Form Error',
+                      //   'Please fill all the required forms correctly.',
+                      //   backgroundColor: Colors.redAccent,
+                      //   colorText: Colors.white,
+                      // );
                     }
                   }
                 },

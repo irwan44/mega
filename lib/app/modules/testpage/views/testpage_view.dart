@@ -113,7 +113,14 @@ class _TestpageViewState extends State<TestpageView> with WidgetsBindingObserver
           actions: [
             IconButton(
               icon: Icon(Icons.refresh, color: Colors.black),
-              onPressed: _onRefresh,
+              onPressed: () {
+                final quizId = question.quizId ?? 0;
+                if (userId != null) {
+                  testQuizProvider.QuizRefresh(quizId, userId!); // Use the fetched userId
+                } else {
+                  print('User ID not found');
+                }
+              },
             ),
           ],
         ),
