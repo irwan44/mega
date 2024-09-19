@@ -16,14 +16,14 @@ class LocalStorages {
   }
 
   static Future<void> setTokenRegis(String token) async {
-    await box.write('token', token);
+    await box.write('token-regist', token);
     Publics.controller.getTokenRegis.value = getTokenRegis;
   }
 
-  static String get getTokenRegis => box.read('token') ?? '';
+  static String get getTokenRegis => box.read('token-regist') ?? '';
 
   static Future<void> deleteTokenRegis() async {
-    await box.remove('token');
+    await box.remove('token-regist');
     Publics.controller.getTokenRegis.value = '';
   }
 

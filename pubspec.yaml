@@ -104,6 +104,7 @@ flutter:
     - assets/gambar/celebration.png
     - assets/gambar/default.jpg
     - assets/gambar/login_failed.png
+    - assets/gambar/logo.png
     - assets/gambar/login_top_shape.png
     - assets/gambar/mega.jpg
     - assets/gambar/product_health_ins.png

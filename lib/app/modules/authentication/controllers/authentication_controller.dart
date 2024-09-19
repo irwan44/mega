@@ -58,6 +58,7 @@ class AuthenticationController extends GetxController {
   final civilIdController = TextEditingController();
   final taxIdController = TextEditingController();
   final OTPController = TextEditingController();
+  final SendOTPController = TextEditingController();
 
   // Bank information controllers
   var selectedBank = Rx<String?>(null);

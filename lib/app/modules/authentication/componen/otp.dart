@@ -1,11 +1,13 @@
-import 'package:bank_mega/app/modules/authentication/componen/widget/common.dart';
+import 'dart:async'; // Tambahkan ini untuk menggunakan Timer
 import 'package:bank_mega/app/modules/authentication/componen/widget/custom.dart';
 import 'package:bank_mega/app/modules/authentication/componen/widget/fedeanimasi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../data/data_endpoint/verifikasi.dart';
 import '../../../data/endpoint.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/authentication_controller.dart';
@@ -19,56 +21,36 @@ class OtpVerificationPage extends StatefulWidget {
 
 class _OtpVerificationPageState extends State<OtpVerificationPage> {
   final AuthenticationController controller = Get.find();
-  Future<bool> _onWillPop() async {
-    final shouldExit = await showModalBottomSheet<bool>(
-      context: context,
-      builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-              color: Colors.white
-          ),
-          padding: EdgeInsets.all(16),
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: Icon(Icons.exit_to_app, color: Colors.orange),
-                title: Text(
-                  'Keluar Dari OTP?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text('Apakah Anda yakin ingin keluar dari OTP?'),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false), // Jangan keluar
-                    child: Text(
-                      'Tidak',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Get.toNamed(Routes.AUTHENTICATION);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                    ),
-                    child: Text('Ya', style: TextStyle( color: Colors.white),),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    return shouldExit ?? false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+  bool isButtonDisabled = false;
+  int remainingSeconds = 0;
+  Timer? timer;
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
   }
+
+  void _startTimer() {
+    setState(() {
+      isButtonDisabled = true;
+      remainingSeconds = 60;
+    });
+
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        remainingSeconds--;
+      });
+
+      if (remainingSeconds == 0) {
+        setState(() {
+          isButtonDisabled = false;
+        });
+        timer.cancel();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final defaultPinTheme = PinTheme(
@@ -95,179 +77,334 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
         color: const Color.fromRGBO(234, 239, 243, 1),
       ),
     );
-
-    return WillPopScope(
-        onWillPop: () async {
-      _onWillPop();
-      return true;
-    },
-    child:
-      Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        backgroundColor: Colors.white,
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-          systemNavigationBarColor: Colors.white,
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    Future<bool> _onWillPop() async {
+      final shouldExit = await showModalBottomSheet<bool>(
+        context: context,
+        builder: (context) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+            ),
+            padding: EdgeInsets.all(16),
+            child: Wrap(
+              children: [
+                const ListTile(
+                  leading: Icon(Icons.exit_to_app, color: Colors.orange),
+                  title: Text(
+                    'Keluar Dari OTP?',
+                    style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold,),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text('Apakah Anda yakin ingin keluar dari OTP?'),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    FadeInAnimation(
-                      delay: 1.3,
-                      child: Text(
-                        "OTP Verification",
-                        style: Common().titelTheme,
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      // Jangan keluar
+                      child: const Text(
+                        'Tidak',
+                        style: TextStyle(color: Colors.red),
                       ),
                     ),
-                    FadeInAnimation(
-                      delay: 1.6,
-                      child: Text(
-                        "Masukkan kode verifikasi yang baru saja kami kirimkan ke alamat email Anda.",
-                        style: Common().mediumThemeblack,
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                        SystemNavigator.pop(); // Keluar dari aplikasi
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
                       ),
+                      child: Text('Ya', style: TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: 10),
-              Center(
-                child: Form(
+              ],
+            ),
+          );
+        },
+      );
+      return shouldExit ??
+          false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+    }
+    return WillPopScope(
+      onWillPop: () async {
+        _onWillPop();
+        return true;
+      },
+      child:
+      Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              _onWillPop();
+            },
+          ),
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.white,
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+            systemNavigationBarColor: Colors.white,
+          ),
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(12.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FadeInAnimation(
-                        delay: 1.9,
-                        child: Pinput(
+                      Text(
+                        "OTP Verification",
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "Masukkan kode verifikasi yang baru saja kami kirimkan ke alamat email Anda.",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10),
+                Center(
+                  child: Form(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Pinput(
                           length: 6,
                           defaultPinTheme: defaultPinTheme,
                           focusedPinTheme: focusedPinTheme,
                           submittedPinTheme: submittedPinTheme,
                           validator: (s) {
-                            return s == '222222' ? null : 'Pin is incorrect';
+                            return s?.isNotEmpty == true
+                                ? null
+                                : 'Kode OTP tidak boleh kosong';
                           },
-                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+                          pinputAutovalidateMode: PinputAutovalidateMode
+                              .onSubmit,
                           controller: controller.OTPController,
                           showCursor: true,
                           onCompleted: (pin) async {
                             await _verifyOtp(pin);
                           },
                         ),
-                      ),
-                      const SizedBox(height: 30),
-                      FadeInAnimation(
-                        delay: 2.1,
-                        child: CustomElevatedButton(
-                          message: "Verify OTP",
-                          function: () async {
-                            if (controller.OTPController.text.isNotEmpty) {
-                              await _verifyOtp(controller.OTPController.text);
-                            } else {
-                              Get.snackbar(
-                                'Gagal OTP',
-                                'Kode OTP Anda salah atau sudah kadaluarsa',
-                                backgroundColor: Colors.redAccent,
-                                colorText: Colors.white,
-                              );
-                            }
-                          },
-                          color: Colors.orange,
+                        const SizedBox(height: 30),
+                        Container(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text('Jika tidak menerima OTP'),
+                                  SizedBox(width: 10,),
+                                  FadeInAnimation(
+                                    delay: 2.1,
+                                    child: SizedBox(
+                                      width: 170,
+                                      height: 45,
+                                      child:
+                                      ElevatedButton(
+                                        onPressed: isButtonDisabled
+                                            ? null
+                                            : () async {
+                                          final otp = controller.OTPController
+                                              .text;
+                                          if (otp.isNotEmpty) {
+                                            await _sendOtp(otp);
+                                            _startTimer();
+                                          } else {
+                                            Get.snackbar(
+                                              'Gagal OTP',
+                                              'Kode OTP Anda salah atau sudah kadaluarsa',
+                                              backgroundColor: Colors.redAccent,
+                                              colorText: Colors.white,
+                                            );
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isButtonDisabled
+                                              ? Colors.grey
+                                              : Colors.blue,
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 50, vertical: 15),
+                                          textStyle: TextStyle(fontSize: 18,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        child: Text(isButtonDisabled
+                                            ? 'Tunggu $remainingSeconds detik'
+                                            : "Send OTP",
+                                          style: GoogleFonts.nunito(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 10),),
+
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: 20,),
+                        FadeInAnimation(
+                          delay: 2.1,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child:
+                            ElevatedButton(
+                              onPressed: () async {
+                                final otp = controller.OTPController.text;
+                                if (otp.isNotEmpty) {
+                                  await _verifyOtp(otp);
+                                } else {
+                                  Get.snackbar(
+                                    'Gagal OTP',
+                                    'Kode OTP Anda salah atau sudah kadaluarsa',
+                                    backgroundColor: Colors.redAccent,
+                                    colorText: Colors.white,
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 50, vertical: 15),
+                                textStyle: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              child: Text("Verify OTP",
+                                style: GoogleFonts.nunito(color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10),),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
 
+  Future<void> _sendOtp(String otp) async {
+    try {
+      final String email = controller.emailController.text;
+      final verifikasi = await API.VerifikasiID();
+      if (verifikasi.data != null && verifikasi.data!.userId != null) {
+        final otpResponse = await API.sendOtpID(
+          email: email,
+          app: 'Agency Room',
+          userid: verifikasi.data!.userId.toString(),
+          createdby: 'system',
+        );
+        print('OTP Response message: ${otpResponse.message}');
+      } else {
+        print('Error: User ID tidak ditemukan dalam respons verifikasi.');
+      }
+    } catch (e) {
+      print('Error saat mengirim OTP: $e');
+    }
+  }
+
   Future<void> _verifyOtp(String otp) async {
     try {
-      String? email = controller.emailController.text;
+      final String email = controller.emailController.text;
       final otpResponse = await API.OtpID(email: email, otp: otp);
 
-      print('OTP Response message: ${otpResponse.message}');
-
       if (otpResponse.message == 'OTP verified successfully') {
-        // Perform VerifikasiID call regardless of OTP response
-        try {
-          final verifikasi = await API.VerifikasiID();
-
-          print('VerifikasiID Response data: ${verifikasi.data}');
-          print('VerifikasiID Response message: ${verifikasi.message}');
-
-          if (verifikasi.message == 'Invalid token: Expired') {
-            Get.snackbar(
-              'Error',
-              'Token expired. Please log in again.',
-              backgroundColor: Colors.redAccent,
-              colorText: Colors.white,
-            );
-          } else {
-            if (verifikasi.data != null) {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('external_id', verifikasi.data!.externalId ?? '');
-
-              // Navigate to AuthenticationView with external_id as argument
-              Get.offAllNamed(
-                Routes.AUTHENTICATION,
-                arguments: {'external_id': verifikasi.data!.externalId ?? ''},
-              );
-            } else {
-              Get.snackbar(
-                'Failed',
-                'Failed to verify OTP',
-                backgroundColor: Colors.redAccent,
-                colorText: Colors.white,
-              );
-            }
-          }
-        } catch (e) {
-          print('Error during VerifikasiID: $e');
-          Get.snackbar(
-            'Error',
-            'Terjadi kesalahan saat memverifikasi ID',
-            backgroundColor: Colors.redAccent,
-            colorText: Colors.white,
-          );
-        }
-      } else if (otpResponse.message == 'Invalid OTP') {
-        Get.snackbar(
-          'Gagal OTP',
-          'Kode OTP Anda salah atau sudah kadaluarsa',
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
-      } else {
+        // OTP berhasil diverifikasi, lakukan proses selanjutnya
         Get.snackbar(
           'OTP Berhasil',
-          'Anda akan mendapatkan Profile ID untuk login kedalam Aplikasi',
+          'Verifikasi berhasil. Anda akan diarahkan ke halaman berikutnya.',
           backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        await _handleVerifikasiResponse();
+      } else {
+        // Menangani respons jika OTP tidak valid atau ada pesan kesalahan lainnya
+        Get.snackbar(
+          'Gagal OTP',
+          otpResponse.message ?? 'Pesan tidak tersedia',
+          backgroundColor: Colors.redAccent,
           colorText: Colors.white,
         );
       }
     } catch (e) {
+      // Tangani kesalahan yang tidak terduga
       print('Error during OTP verification: $e');
       Get.snackbar(
         'Error',
         'Terjadi kesalahan saat memverifikasi OTP',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+
+  Future<void> _handleVerifikasiResponse() async {
+    try {
+      final verifikasi = await API.VerifikasiregisID();
+
+      if (verifikasi.message == 'Invalid token: Expired') {
+        Get.snackbar(
+          'Error',
+          'Token expired. Please log in again.',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      } else if (verifikasi.data != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('external_id', verifikasi.data!.externalId ?? '');
+
+        Get.offAllNamed(
+          Routes.AUTHENTICATION,
+          arguments: {'external_id': verifikasi.data!.externalId ?? ''},
+        );
+      } else {
+        Get.snackbar(
+          'Failed',
+          'Failed to verify OTP',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error during VerifikasiID: $e');
+      Get.snackbar(
+        'Error',
+        'Terjadi kesalahan saat memverifikasi ID',
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );

@@ -1,19 +1,13 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
-
-import 'package:animated_custom_dropdown/custom_dropdown.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pdf_render/pdf_render.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/data_endpoint/Salutations.dart';
 import '../../../data/data_endpoint/area.dart';
@@ -86,7 +80,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
         );
       },
     );
-    return shouldExit ?? false; // Mengembalikan false jika pengguna menekan di luar BottomSheet
+    return shouldExit ?? false;
   }
   @override
   void dispose() {

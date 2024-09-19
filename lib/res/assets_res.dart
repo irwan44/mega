@@ -14,6 +14,7 @@ class AssetsRes {
   static const String DEFAULT = 'assets/gambar/default.jpg';
   static const String LOGIN_FAILED = 'assets/gambar/login_failed.png';
   static const String LOGIN_TOP_SHAPE = 'assets/gambar/login_top_shape.png';
+  static const String LOGO = 'assets/gambar/logo.png';
   static const String MEGA = 'assets/gambar/mega.jpg';
   static const String PRODUCT_HEALTH_INS = 'assets/gambar/product_health_ins.png';
   static const String PRODUCT_HOUSE_INS = 'assets/gambar/product_house_ins.png';

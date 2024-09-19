@@ -49,7 +49,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
   Future<void> _fetchExternalId() async {
     final storage = GetStorage();
     try {
-      final verifikasi = await API.VerifikasiID();
+      final verifikasi = await API.VerifikasiregisID();
       String? externalId = verifikasi.data?.externalId;
 
       if (externalId != null) {
@@ -121,6 +121,14 @@ class _AuthenticationViewState extends State<AuthenticationView> {
             child: Image.asset(
               'assets/gambar/town_background_cutout.png',
               fit: BoxFit.fitWidth,
+            ),
+          ),
+          Positioned(
+            right: 10,
+            height: 36,
+            child: Image.asset(
+              'assets/gambar/logo.png',
+              fit: BoxFit.contain,
             ),
           ),
           SafeArea(
@@ -306,7 +314,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                 ),
                 SizedBox(height: 20),
                 TextButton(
-                  onPressed: () => Get.toNamed(Routes.RegistrationStepper),
+                  onPressed: () => Get.toNamed(Routes.OtpVerification),
                   child: Text(
                     'Register Now',
                     style: GoogleFonts.nunito(

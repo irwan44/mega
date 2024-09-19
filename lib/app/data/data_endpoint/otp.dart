@@ -1,4 +1,4 @@
-class   OTP {
+class OTP {
   String? message;
 
   OTP({this.message});

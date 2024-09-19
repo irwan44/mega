@@ -37,12 +37,15 @@ class API {
   static const _Postprovinces = '$_baseUrl/extra/provinces';
   static const _PostScurrencies = '$_baseUrl/extra/currencies';
   static const _PostOTP = '$_baseUrl/verify-otp';
+  static const _PostSendOTP = '$_baseUrl/send-otp';
+
   static const _Postpretes = '$_baseUrl/pre-test/quizzes/latest/questions';
+  static const _PostSubmitquis = '$_baseUrl/pre-test/quizz/submit';
+
   static const _Postme = '$_baseUrl/me';
   static const _PostEditAccount = '$_baseUrl/update-profile';
   static const _PostLearning = '$_baseUrl/course/all';
   static const _PostDetailLearning = '$_baseUrl/course/view';
-  static const _PostSubmitquis = '$_baseUrl/pre-test/quizz/submit';
   static const _Posttest = '$_baseUrl/post-test/quizzes/latest/questions';
   static const _PostSubmittest = '$_baseUrl/post-test/quizzes/submit';
 
@@ -315,12 +318,6 @@ class API {
       }
     } catch (e) {
       print('Error: $e');
-      // Get.snackbar(
-      //   'Error',
-      //   'Terjadi kesalahan saat mengirim data: $e',
-      //   backgroundColor: Colors.redAccent,
-      //   colorText: Colors.white,
-      // );
       throw e;
     }
   }
@@ -700,13 +697,17 @@ class API {
   }
 
   //Beda
-  static Future<OTP> OtpID({
+  static Future<OTP> sendOtpID({
+    required String userid,
+    required String app,
     required String email,
-    required String otp,
+    required String createdby,
   }) async {
     final formData = dio.FormData.fromMap({
+      "user_id": userid,
+      "app": app,
       "email": email,
-      "otp": otp,
+      "created_by": createdby,
     });
 
     try {
@@ -714,7 +715,7 @@ class API {
       print('Token: $token');
 
       var response = await dio.Dio().post(
-        _PostOTP,
+        _PostSendOTP,
         data: formData,
         options: dio.Options(
           headers: {
@@ -759,11 +760,113 @@ class API {
       return OTP(message: 'Gagal Registrasi');
     }
   }
+  //Beda
+  static Future<OTP> OtpID({
+    required String email,
+    required String otp,
+  }) async {
+    final formData = dio.FormData.fromMap({
+      "email": email,
+      "otp": otp,
+    });
+
+    try {
+      final token = Publics.controller.getTokenRegis.value ?? '';
+      print('Token: $token');
+
+      var response = await dio.Dio().post(
+        _PostOTP,
+        data: formData,
+        options: dio.Options(
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        final message = responseData['message'] as String;
+
+        if (message == 'OTP verified successfully') {
+          // OTP berhasil diverifikasi
+          return OTP(message: 'OTP verified successfully');
+        } else {
+          // Pesan kesalahan spesifik dari server
+          return OTP(message: message);
+        }
+      } else {
+        throw Exception('Response status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      return OTP(message: 'Terjadi kesalahan saat memverifikasi OTP');
+    }
+  }
+
 
   //Beda
   static Future<Verifikasi> VerifikasiID() async {
     // Retrieve token from local storage
     final token = await LocalStorages.getToken;
+
+    if (token == null) {
+      throw Exception('No token found');
+    }
+
+    try {
+      // Make the API request
+      final response = await Dio().get(
+        _Postme,
+        options: Options(
+          headers: {
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
+
+      // Log response status and data
+      print('VerifikasiID Response status: ${response.statusCode}');
+      print('VerifikasiID Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        // Parse the response data
+        final verifikasi = Verifikasi.fromJson(response.data);
+
+        // Extract external ID from response
+        String? externalId = verifikasi.data?.externalId;
+
+        // If externalId is null, use the one stored locally
+        if (externalId == null) {
+          externalId = await LocalStorages.getExternalId();
+          print('Using saved local external ID: ${externalId ?? 'empty'}');
+        } else {
+          // Save the new external ID to local storage
+          await LocalStorages.saveExternalId(externalId);
+          print('Saved new external ID: $externalId');
+        }
+
+        return verifikasi;
+      } else {
+        throw Exception(
+            'Failed to verify ID. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Check for DioError and handle specific status code
+      if (e is DioError) {
+        // Check if status code is 401 and externalId is not null
+      }
+      print('Error during VerifikasiID: $e');
+      throw Exception('An error occurred during verification. Details: $e');
+    }
+  }
+  static Future<Verifikasi> VerifikasiregisID() async {
+    // Retrieve token from local storage
+    final token = await LocalStorages.getTokenRegis;
 
     if (token == null) {
       throw Exception('No token found');
