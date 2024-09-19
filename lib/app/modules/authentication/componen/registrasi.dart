@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -196,11 +197,39 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         String dateOfBirth = DateFormat('yyyy-MM-dd').format(controller.selectedDate.value ?? DateTime.now());
 
                         // Print values being sent to the API
-                        print('Sending the following data to the API:');
-                        // Print all data...
+                        Map<String, dynamic> requestBody = {
+                          'name': controller.nameController.text,
+                          'address': controller.addressController.text,
+                          'place_of_birth': controller.placeOfBirthController.text,
+                          'date_of_birth': dateOfBirth,
+                          'phone_number': controller.phoneNumberController.text,
+                          'email': controller.emailController.text,
+                          'bank_account_name': controller.bankAccountNameController.text,
+                          'bank_account_number': controller.bankAccountNumberController.text,
+                          'bank_code': controller.selectedBank.value ?? '',
+                          'bank_name': controller.selectedBankName.value ?? '',
+                          'bank_currency': controller.selectedCurency.value ?? '',
+                          'civil_id': controller.civilIdController.text,
+                          'tax_id': controller.taxIdController.text,
+                          'corporate': controller.selectedType.value ?? '',
+                          'salutation': controller.selectedSalutation.value ?? '',
+                          'zip_code': controller.zipCodeController.text,
+                          'province': controller.selectedProvince.value ?? '',
+                          'city': controller.selectedCity.value ?? '',
+                          'pic': controller.PicController.text,
+                          'gender': controller.selectedGender.value ?? '',
+                          'license_number': controller.licenseNumberController.text,
+                          'password': controller.passwordController.text,
+                          'password_confirmation': controller.passwordConfirmationController.text,
+
+                        };
+
+                        print('Sending the following request body to the API:');
+                        print(jsonEncode(requestBody));
 
                         controller.isLoading.value = true;
 
+                        // Call the API
                         Registrasi? registrationResponse = await API.RegisterID(
                           name: controller.nameController.text,
                           address: controller.addressController.text,
@@ -239,7 +268,6 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                           print("Registration successful, received token: $token");
                           Get.offAllNamed(Routes.AUTHENTICATION);
                         } else {
-                          // Handle unexpected errors or null response
                           Get.snackbar(
                             'Registration Failed',
                             'An unexpected error occurred. Please try again.',
@@ -249,56 +277,13 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                         }
                       } catch (e) {
                         print('Error during registration: $e');
-                        if (e is dio.DioError) {
-                          if (e.response?.statusCode == 422) {
-                            try {
-                              final responseData = e.response?.data;
-                              String errorMessage = '';
-
-                              if (responseData is Map<String, dynamic>) {
-                                if (responseData.containsKey('message')) {
-                                  errorMessage = responseData['message'];
-                                }
-
-                                if (responseData['data'] != null && responseData['data'] is List) {
-                                  List<dynamic> dataList = responseData['data'];
-                                  // Combine all messages from dataList if needed
-                                  errorMessage += '\n' + dataList.join('\n');
-                                }
-                              }
-                              Get.snackbar(
-                                'Registration Failed',
-                                errorMessage.isNotEmpty ? errorMessage : 'Data process failed! Incorrect Currency!',
-                                backgroundColor: Colors.redAccent,
-                                colorText: Colors.white,
-                              );
-                            } catch (e) {
-                              print('Error parsing error response: $e');
-                              Get.snackbar(
-                                'Error',
-                                'Terjadi kesalahan saat parsing error response',
-                                backgroundColor: Colors.redAccent,
-                                colorText: Colors.white,
-                              );
-                            }
-                          } else {
-                            Get.snackbar(
-                              'Error',
-                              'Terjadi kesalahan yang tidak diketahui',
-                              backgroundColor: Colors.redAccent,
-                              colorText: Colors.white,
-                            );
-                          }
-                        } else {
-                          Get.snackbar(
-                            'Error',
-                            'Terjadi kesalahan saat registrasi',
-                            backgroundColor: Colors.redAccent,
-                            colorText: Colors.white,
-                          );
-                        }
+                        Get.snackbar(
+                          'Form Error',
+                          '$e',
+                          backgroundColor: Colors.redAccent,
+                          colorText: Colors.white,
+                        );
                       } finally {
-                        // Reset loading state
                         controller.isLoading.value = false;
                       }
                     } else {

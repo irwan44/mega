@@ -22,28 +22,15 @@ class ViewHome extends StatefulWidget {
   State<ViewHome> createState() => _ViewHomeState();
 }
 
+bool _isLoadingPostTest = false;
+bool _isLoadingSales = false;
+bool _isLoadingRenew = false;
+
 Future<Map<String, int>?> _loadQuizScore() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final correctAnswers = prefs.getInt('quiz_correct_answers') ?? 0;
     final totalQuestions = prefs.getInt('quiz_total_questions') ?? 1;
-
-    if (totalQuestions > 0) {
-      return {'score': correctAnswers, 'total': totalQuestions};
-    } else {
-      return null;
-    }
-  } catch (e) {
-    print('Error loading quiz score: $e');
-    return null;
-  }
-}
-
-Future<Map<String, int>?> _loadTestQuizScore() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final correctAnswers = prefs.getInt('test_correct_answers') ?? 0;
-    final totalQuestions = prefs.getInt('test_total_questions') ?? 1;
 
     if (totalQuestions > 0) {
       return {'score': correctAnswers, 'total': totalQuestions};
@@ -199,7 +186,7 @@ class _ViewHomeState extends State<ViewHome> {
               children: [
                 _Slider(context),
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.only(right: 10, left: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: AnimationConfiguration.toStaggeredList(
@@ -231,19 +218,21 @@ class _ViewHomeState extends State<ViewHome> {
                           children: [
                             _buildSectionTitle(context, 'Journey'),
                             const SizedBox(height: 13),
-                            Wrap(
+                            Center(
+                              child: Wrap(
                               spacing: 16.0,
                               runSpacing: 16.0,
                               crossAxisAlignment: WrapCrossAlignment.center,
                               alignment: WrapAlignment.center,
                               children: [
-                                _buildMenuItem(context, 'Create', Icons.create),
+                                _buildMenuItem(context, 'Sales', Icons.create),
                                 _buildMenuItem(context, 'Renew', Icons.refresh),
                                 _buildMenuItem(context, 'Ranks', Icons.star),
                                 _buildMenuItem(context, 'Learning', Icons.school),
                                 _buildMenuItem(context, 'Post-Test', Icons.assignment),
                                 _buildMenuItem(context, 'Reminder', Icons.alarm),
-                              ],
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 32),
                           ],
@@ -354,11 +343,130 @@ class _ViewHomeState extends State<ViewHome> {
     );
   }
 
+  Widget _buildMenuItem(BuildContext context, String title, IconData icon) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return SizedBox(
+      width: screenWidth * 0.25,
+      child: GestureDetector(
+        onTap: () async {
+          if (title == 'Post-Test') {
+            if (_isLoadingPostTest) return;
+            setState(() {
+              _isLoadingPostTest = true; // Start loading
+            });
+            await _handleMenuAction(context, title);
+            setState(() {
+              _isLoadingPostTest = false; // Stop loading
+            });
+          } else if (title == 'Sales') {
+            if (_isLoadingSales) return;
+            setState(() {
+              _isLoadingSales = true; // Start loading
+            });
+            await _handleMenuAction(context, title);
+            setState(() {
+              _isLoadingSales = false; // Stop loading
+            });
+          } else if (title == 'Renew') {
+            if (_isLoadingRenew) return;
+            setState(() {
+              _isLoadingRenew = true; // Start loading
+            });
+            await _handleMenuAction(context, title);
+            setState(() {
+              _isLoadingRenew = false; // Stop loading
+            });
+          } else {
+            // Handle other menu items without loading
+            await _handleMenuAction(context, title);
+          }
+        },
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10.0),
+              width: 112,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.15),
+                    spreadRadius: 5,
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (title == 'Post-Test' && _isLoadingPostTest ||
+                      title == 'Sales' && _isLoadingSales ||
+                      title == 'Renew' && _isLoadingRenew)
+                    CircularProgressIndicator(color: Colors.orange,) // Show loading indicator
+                  else
+                    Icon(icon, size: 24, color: Colors.orange),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyText1?.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleMenuAction(BuildContext context, String title) async {
+    // The logic for handling the menu action, e.g., navigating or showing messages
+    double scorePercentage = 0.0;
+    String testType = '';
+
+    final userProfile = await _loadUserProfile();
+    final accountStatus = userProfile?.data?.accountStatus ?? -1;
+
+    // Clean up the postTestScore
+    String? rawScore = userProfile?.data?.postTestScore?.replaceAll('%', '').trim();
+    final postTestScore = double.tryParse(rawScore ?? "0.0") ?? 0.0;
+
+    if (title == 'Post-Test') {
+      if (accountStatus == 2) {
+        _showTestInstructions();
+      } else {
+        _showAccessDeniedForApproval();
+      }
+    } else if (title == 'Sales' || title == 'Renew') {
+      testType = 'Post-Test';
+
+      if (postTestScore >= 80.00) {
+        Get.toNamed(title == 'Sales' ? Routes.WebView : Routes.RENEW);
+      } else {
+        _showAccessDenied(title, testType);
+      }
+    } else if (title == 'Ranks') {
+      _showRanksUnderDevelopment();
+    } else if (title == 'Reminder') {
+      Get.toNamed(Routes.REMINDER);
+    } else if (title == 'Learning') {
+      Get.toNamed(Routes.LEARNING);
+    }
+  }
+
   Widget _Slider(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        SizedBox(height: 20,),
         CarouselSlider(
           options: CarouselOptions(
             autoPlay: true,
@@ -366,7 +474,7 @@ class _ViewHomeState extends State<ViewHome> {
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
             autoPlayCurve: Curves.fastOutSlowIn,
             pauseAutoPlayOnTouch: true,
-            aspectRatio: 2.7,
+            aspectRatio: 3.7,
             onPageChanged: (index, reason) {
               setState(() {
                 _currentIndex = index;
@@ -376,7 +484,7 @@ class _ViewHomeState extends State<ViewHome> {
           items: imgList
               .map((item) => Container(
             margin: const EdgeInsets.only(right: 10),
-            width: screenWidth * 0.9,
+            width: screenWidth * 100,
             height: screenWidth * 0.5,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
@@ -385,12 +493,13 @@ class _ViewHomeState extends State<ViewHome> {
                 fit: BoxFit.cover,
               ),
             ),
-          ))
+          ),
+          )
               .toList(),
         ),
         const SizedBox(height: 10),
         Container(
-          width: screenWidth * 0.3,
+          width: screenWidth * 0.2,
           decoration: BoxDecoration(
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(10),
@@ -400,7 +509,7 @@ class _ViewHomeState extends State<ViewHome> {
             children: imgList.map((url) {
               int index = imgList.indexOf(url);
               return Container(
-                width: 19.0,
+                width: 10.0,
                 height: 5.0,
                 margin: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 2.0),
                 decoration: BoxDecoration(
@@ -430,96 +539,8 @@ class _ViewHomeState extends State<ViewHome> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, String title, IconData icon) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    return SizedBox(
-      width: screenWidth * 0.25,
-      child: GestureDetector(
-        onTap: () async {
-          double scorePercentage = 0.0;
-          String testType = '';
 
-          final userProfile = await _loadUserProfile();
-          final accountStatus = userProfile?.data?.accountStatus ?? -1;
 
-          // Bersihkan karakter non-angka (misalnya %, spasi) dari postTestScore
-          String? rawScore = userProfile?.data?.postTestScore?.replaceAll('%', '').trim();
-
-          // Coba parse menjadi double
-          final postTestScore = double.tryParse(rawScore ?? "0.0") ?? 0.0;
-
-          // Cek tipe data dan nilai dari postTestScore
-          print('Title: $title');
-          print('Post-Test Score (Original): ${userProfile?.data?.postTestScore ?? ""}');
-          print('Post-Test Score (Cleaned): $rawScore');
-          print('Post-Test Score (Parsed): $postTestScore');
-          print('Post-Test Score Type: ${postTestScore.runtimeType}');
-
-          if (title == 'Post-Test') {
-            if (accountStatus == 2) {
-              _showTestInstructions();
-            } else {
-              _showAccessDeniedForApproval();
-            }
-          } else if (title == 'Create' || title == 'Renew') {
-            testType = 'Post-Test';
-            print('Title: $title');
-            print('Post-Test Score: ${userProfile?.data?.postTestScore ?? ""}');
-
-            if (postTestScore >= 80.00) {
-              print('Post-Test Score lebih dari 80%, membuka menu');
-              Get.toNamed(title == 'Create' ? Routes.WebView : Routes.RENEW);
-            } else {
-              _showAccessDenied(title, testType);
-            }
-
-          } else if (title == 'Ranks') {
-            _showRanksUnderDevelopment();
-          } else if (title == 'Reminder') {
-            Get.toNamed(Routes.REMINDER);
-          } else if (title == 'Learning') {
-            Get.toNamed(Routes.LEARNING);
-          }
-        },
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10.0),
-              width: 112,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.15),
-                    spreadRadius: 5,
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 24, color: Colors.orange),
-                  const SizedBox(height: 8),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyText1?.color,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   void _showAccessDenied(String menuTitle, String testType) {
     showModalBottomSheet(
       showDragHandle: true,

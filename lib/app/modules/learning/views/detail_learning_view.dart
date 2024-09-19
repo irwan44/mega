@@ -130,8 +130,8 @@ class _DetailLearningViewState extends State<DetailLearningView> {
                                     padding: const EdgeInsets.only(right: 8.0),
                                     child: Image.network(
                                       imageUrl,
-                                      fit: BoxFit.cover,
-                                      width: 150, // Set width for each image
+                                      fit: BoxFit.contain,
+                                      height: 150, // Set width for each image
                                       errorBuilder: (context, error, stackTrace) => Text(
                                         'Failed to load image',
                                         style: GoogleFonts.nunito(fontSize: 16),
@@ -252,7 +252,7 @@ class _DetailLearningViewState extends State<DetailLearningView> {
   String _getFileUrl(String filePath) {
     final fullUrl = filePath.startsWith('http')
         ? filePath
-        : 'https://agencydashboard.megainsurance.co.id$filePath';
+        : 'https://agencydashboard.megainsurance.co.id/$filePath';
     return fullUrl;
   }
 

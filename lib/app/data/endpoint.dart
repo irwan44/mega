@@ -106,8 +106,8 @@ class API {
         return null;
       }
     } catch (e) {
-      print('Error during login: $e');
-      Get.snackbar('Error', 'An error occurred during login. Please try again.',
+      print(e);
+      Get.snackbar('Error', 'Failed to load data: $e',
           backgroundColor: Colors.redAccent, colorText: Colors.white);
       return null;
     }

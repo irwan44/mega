@@ -260,7 +260,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                                             Get.offAllNamed(Routes.QUIZ);
                                           }
                                         } else {
-                                          Get.snackbar('Error', 'Terjadi kesalahan saat login',
+                                          Get.snackbar('Error', 'These credentials do not match our records.',
                                               backgroundColor: Colors.redAccent,
                                               colorText: Colors.white);
                                         }

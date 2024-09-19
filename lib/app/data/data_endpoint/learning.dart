@@ -20,7 +20,7 @@ class Learning {
     id = json['id'];
     title = json['title'];
     content = json['content'];
-    fileUpload = json['file_upload'];
+    fileUpload = json['file_pdf'];
     createdBy = json['created_by'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
@@ -31,7 +31,7 @@ class Learning {
     data['id'] = this.id;
     data['title'] = this.title;
     data['content'] = this.content;
-    data['file_upload'] = this.fileUpload;
+    data['file_pdf'] = this.fileUpload;
     data['created_by'] = this.createdBy;
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;

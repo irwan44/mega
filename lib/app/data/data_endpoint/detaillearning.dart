@@ -50,7 +50,7 @@ class Data {
     createdBy = json['created_by'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    fileUpload = json['file_upload'];
+    fileUpload = json['file_pdf'];
   }
 
   Map<String, dynamic> toJson() {
@@ -61,7 +61,7 @@ class Data {
     data['created_by'] = this.createdBy;
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;
-    data['file_upload'] = this.fileUpload;
+    data['file_pdf'] = this.fileUpload;
     return data;
   }
 }
