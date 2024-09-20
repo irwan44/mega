@@ -78,11 +78,6 @@ class API {
             String? token = responseData['data']?['token'];
             if (token != null) {
               LocalStorages.setToken(token);
-
-              Get.snackbar('Selamat Datang', 'MEGA INCURANCE',
-                  backgroundColor: Colors.green,
-                  colorText: Colors.white);
-              Get.offAllNamed(Routes.QUIZ);
               return token;
             } else {
               print('Token is null. Unable to proceed.');
@@ -711,7 +706,7 @@ class API {
     });
 
     try {
-      final token = Publics.controller.getToken.value ?? '';
+      final token = Publics.controller.getTokenRegis.value ?? '';
       print('Token: $token');
 
       var response = await dio.Dio().post(
@@ -733,31 +728,18 @@ class API {
         final message = responseData['message'] as String;
 
         if (message == 'OTP verified successfully') {
-          // Successful OTP verification
-          Get.offAllNamed(Routes.AUTHENTICATION);
-          return OTP(message: 'Registrasi Berhasil');
+          // OTP berhasil diverifikasi
+          return OTP(message: 'OTP verified successfully');
         } else {
-          // Handle specific error messages
-          Get.snackbar(
-            'Gagal OTP',
-            'Kode OTP Anda salah atau sudah kadaluarsa',
-            backgroundColor: Colors.redAccent,
-            colorText: Colors.white,
-          );
-          return OTP(message: 'Gagal OTP');
+          // Pesan kesalahan spesifik dari server
+          return OTP(message: message);
         }
       } else {
         throw Exception('Response status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error: $e');
-      Get.snackbar(
-        'Error',
-        'Terjadi kesalahan saat memverifikasi OTP',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
-      return OTP(message: 'Gagal Registrasi');
+      return OTP(message: 'Terjadi kesalahan saat memverifikasi OTP');
     }
   }
   //Beda

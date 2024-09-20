@@ -314,7 +314,7 @@ class _AuthenticationViewState extends State<AuthenticationView> {
                 ),
                 SizedBox(height: 20),
                 TextButton(
-                  onPressed: () => Get.toNamed(Routes.OtpVerification),
+                  onPressed: () => Get.toNamed(Routes.RegistrationStepper),
                   child: Text(
                     'Register Now',
                     style: GoogleFonts.nunito(

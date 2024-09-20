@@ -37,21 +37,21 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
       context: context,
       builder: (context) {
         return Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
               color: Colors.white
           ),
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Wrap(
             children: [
-              ListTile(
+              const ListTile(
                 leading: Icon(Icons.exit_to_app, color: Colors.orange),
                 title: Text(
                   'Keluar Dari Registrasi?',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text('Apakah Anda yakin ingin keluar dari Registrasi?'),
               ),
               Row(
@@ -59,7 +59,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false), // Jangan keluar
-                    child: Text(
+                    child: const Text(
                       'Tidak',
                       style: TextStyle(color: Colors.red),
                     ),
@@ -71,7 +71,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                     ),
-                    child: Text('Ya', style: TextStyle( color: Colors.white),),
+                    child: const Text('Ya', style: TextStyle( color: Colors.white),),
                   ),
                 ],
               ),
@@ -112,7 +112,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
       body: Obx(() {
         return Column(
           children: [
-            SizedBox(height: 10,),
+            const SizedBox(height: 10,),
             _buildStepperHeader(controller),
             Expanded(
               child: IndexedStack(
@@ -134,16 +134,16 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           children: [
             if (controller.currentStep.value > 0)
               IconButton(
-                icon: Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () {
                   controller.previousStep();
                 },
               ),
-            Spacer(),
+            const Spacer(),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: controller.currentStep.value < 2 ? Colors.blue : Colors.green,
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
               ),
                 onPressed: () async {
                   if (controller.currentStep.value < 2) {
@@ -328,7 +328,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
           return Expanded(
             child: Container(
               alignment: Alignment.center,
-              padding: EdgeInsets.symmetric(vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
                 color: controller.currentStep.value == index ? Colors.orange : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
@@ -351,10 +351,10 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
     return Form(
       key: controller.formKey1,
       child: ListView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         children: [
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -363,12 +363,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.nameController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.person, color: Colors.orange),
+                prefixIcon: const Icon(Icons.person, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Full Name',
                 labelStyle: GoogleFonts.nunito(),
                 alignLabelWithHint: true, // Menyelaraskan label dengan hint
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -379,9 +379,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
             ),
           ),
 
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -390,11 +390,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.passwordController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.password_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.password_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Password',
                 labelStyle: GoogleFonts.nunito(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
                 suffixIcon: IconButton(
                   icon: Icon(
                     controller.obscurePassword.value ? Icons.visibility_off : Icons.visibility,
@@ -416,9 +416,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -427,11 +427,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               controller: controller.passwordConfirmationController,
               style: GoogleFonts.nunito(),
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.password_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.password_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Confirmation Password',
                 labelStyle: GoogleFonts.nunito(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
                 suffixIcon: IconButton(
                   icon: Icon(
                     controller.obscureConfirmationPassword.value ? Icons.visibility_off : Icons.visibility,
@@ -453,9 +453,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -465,12 +465,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               controller: controller.birthController,
               readOnly: true,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.calendar_month_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.calendar_month_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Date of Birth',
                 labelStyle: GoogleFonts.nunito(),
                 hintStyle: GoogleFonts.nunito(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
                 hintText: controller.selectedDate.value == null
                     ? 'Select Date of Birth'
                     : DateFormat('yyyy-MM-dd').format(controller.selectedDate.value!),
@@ -484,9 +484,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -496,11 +496,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               controller: controller.placeOfBirthController,
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.maps_home_work_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.maps_home_work_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: ' Place of birth',
                 labelStyle: GoogleFonts.nunito(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -510,9 +510,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
+            padding: const EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -522,8 +522,8 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.school, color: Colors.orange),
-                    SizedBox(width: 15), // Spacing between icon and dropdown
+                    const Icon(Icons.school, color: Colors.orange),
+                    const SizedBox(width: 15), // Spacing between icon and dropdown
                     Expanded(
                       child: FutureBuilder<Salutations>(
                         future: API.SalutationsID(),
@@ -540,7 +540,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                           } else if (!snapshot.hasData ||
                               snapshot.data!.data == null ||
                               snapshot.data!.data!.isEmpty) {
-                            return Center(child: Text('No data available'));
+                            return const Center(child: Text('No data available'));
                           } else {
                             // Safely extract the data
                             List<String> salutationList = snapshot.data!.data!;
@@ -578,7 +578,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                                     }
                                     return null;
                                   },
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     border: InputBorder.none, // Remove the default border
                                   ),
                                 );
@@ -593,22 +593,22 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 Obx(() {
                   // Menampilkan pesan error jika validasi gagal
                   return controller.selectedSalutation.value == null
-                      ? Padding(
-                    padding: const EdgeInsets.only(left: 1.0), // Sejajarkan dengan ikon
+                      ? const Padding(
+                    padding: EdgeInsets.only(left: 1.0), // Sejajarkan dengan ikon
                     child: Text(
                       'Please select a Salutation',
                       style: TextStyle(color: Colors.red, fontSize: 12),
                     ),
                   )
-                      : SizedBox.shrink();
+                      : const SizedBox.shrink();
                 }),
               ],
             ),
           ),
 
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 20, bottom: 10),
+            padding: const EdgeInsets.only(left: 20, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -648,20 +648,20 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 Obx(() {
                   // Menampilkan pesan error jika tidak ada gender yang dipilih
                   return controller.selectedGender.value == null
-                      ? Text(
+                      ? const Text(
                     'Please select a Gender',
                     style: TextStyle(color: Colors.red, fontSize: 12),
                   )
-                      : SizedBox.shrink();
+                      : const SizedBox.shrink();
                 }),
               ],
             ),
           ),
 
-    SizedBox(
+    const SizedBox(
         height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -671,11 +671,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               controller: controller.emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.alternate_email_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.alternate_email_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Email',
                 labelStyle: GoogleFonts.nunito(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -685,9 +685,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -697,11 +697,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               controller: controller.phoneNumberController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.phone_android_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.phone_android_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Phone Number',
                 labelStyle: GoogleFonts.nunito(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                contentPadding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -711,9 +711,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 20, bottom: 10),
+            padding: const EdgeInsets.only(left: 20, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -755,11 +755,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 Obx(() {
                   // Menampilkan pesan error jika tidak ada gender yang dipilih
                   return controller.selectedType.value == null
-                      ? Text(
+                      ? const Text(
                     'Please select an Account Type',
                     style: TextStyle(color: Colors.red, fontSize: 12),
                   )
-                      : SizedBox.shrink();
+                      : const SizedBox.shrink();
                 }),
                 Obx(() {
                   return Visibility(
@@ -767,7 +767,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                     child: TextField(
                       controller: controller.PicController,
                       decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.person, color: Colors.orange),
+                        prefixIcon: const Icon(Icons.person, color: Colors.orange),
                         border: InputBorder.none,
                         labelText: 'PIC',
                         labelStyle: GoogleFonts.nunito(),
@@ -788,10 +788,10 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
     return Form(
       key: controller.formKey2,
       child: ListView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         children: [
           Container(
-            padding: EdgeInsets.only(left: 14, bottom: 10),
+            padding: const EdgeInsets.only(left: 14, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -800,12 +800,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.addressController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.map_sharp, color: Colors.orange),
+                prefixIcon: const Icon(Icons.map_sharp, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Address',
                 labelStyle: GoogleFonts.nunito(),
                 alignLabelWithHint: true, // Menyelaraskan label dengan hint
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -815,9 +815,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
+            padding: const EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -827,8 +827,8 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.location_city_rounded, color: Colors.orange),
-                    SizedBox(width: 15),
+                    const Icon(Icons.location_city_rounded, color: Colors.orange),
+                    const SizedBox(width: 15),
                     Expanded(
                       child: FutureBuilder<Provinsi>(
                         future: API.Provincesid(), // Fetch province data
@@ -845,7 +845,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                           } else if (!snapshot.hasData ||
                               snapshot.data!.data == null ||
                               snapshot.data!.data!.isEmpty) {
-                            return Center(child: Text('No data available'));
+                            return const Center(child: Text('No data available'));
                           } else {
                             // Extract the province data from the dictionary
                             Map<String, String> provinceMap = snapshot.data!.data!;
@@ -898,7 +898,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                                     }
                                     return null;
                                   },
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     border: InputBorder.none, // Remove default border
                                   ),
                                   isExpanded: true, // Make dropdown take full width
@@ -913,21 +913,21 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 ),
                 Obx(() {
                   return controller.selectedProvince.value == null
-                      ? Padding(
-                    padding: const EdgeInsets.only(left: 1.0), // Align with the icon
+                      ? const Padding(
+                    padding: EdgeInsets.only(left: 1.0), // Align with the icon
                     child: Text(
                       'Please select a Province',
                       style: TextStyle(color: Colors.red, fontSize: 12),
                     ),
                   )
-                      : SizedBox.shrink();
+                      : const SizedBox.shrink();
                 }),
               ],
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
+            padding: const EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -937,8 +937,8 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.location_city_rounded, color: Colors.orange),
-                    SizedBox(width: 15),
+                    const Icon(Icons.location_city_rounded, color: Colors.orange),
+                    const SizedBox(width: 15),
                     Expanded(
                       child: FutureBuilder<Area>(
                         future: API.AreasID(),
@@ -953,7 +953,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                           } else if (snapshot.hasError) {
                             return Center(child: Text('Error: ${snapshot.error}'));
                           } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
-                            return Center(child: Text('No data available'));
+                            return const Center(child: Text('No data available'));
                           } else {
                             // Extract the area data from the dictionary
                             Map<String, String> areaMap = snapshot.data!.data!;
@@ -986,7 +986,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                                     }
                                     return null;
                                   },
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     border: InputBorder.none, // Remove the default border
                                   ),
                                 );
@@ -1000,22 +1000,22 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 ),
                 Obx(() {
                   return controller.selectedCity.value == null
-                      ? Padding(
-                    padding: const EdgeInsets.only(left: 1.0), // Align with the icon
+                      ? const Padding(
+                    padding: EdgeInsets.only(left: 1.0), // Align with the icon
                     child: Text(
                       'Please select a City',
                       style: TextStyle(color: Colors.red, fontSize: 12),
                     ),
                   )
-                      : SizedBox.shrink();
+                      : const SizedBox.shrink();
                 }),
               ],
             ),
           ),
 
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 14, bottom: 10),
+            padding: const EdgeInsets.only(left: 14, bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1024,12 +1024,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.zipCodeController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.map_sharp, color: Colors.orange),
+                prefixIcon: const Icon(Icons.map_sharp, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Zip Code',
                 labelStyle: GoogleFonts.nunito(),
                 alignLabelWithHint: true, // Menyelaraskan label dengan hint
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -1040,9 +1040,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
+            padding: const EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1051,12 +1051,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.licenseNumberController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.map_sharp, color: Colors.orange),
+                prefixIcon: const Icon(Icons.map_sharp, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'License Number',
                 labelStyle: GoogleFonts.nunito(),
                 alignLabelWithHint: true, // Menyelaraskan label dengan hint
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -1067,9 +1067,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
+            padding: const EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1078,11 +1078,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.civilIdController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.credit_card_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.credit_card_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'NIK / Civil ID',
                 labelStyle: GoogleFonts.nunito(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
               keyboardType: TextInputType.number,
               maxLength: 16, // Limits the input to 16 characters
@@ -1100,9 +1100,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
+            padding: const EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1111,11 +1111,11 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.taxIdController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.credit_card_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.credit_card_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'NPWP / TaxID',
                 labelStyle: GoogleFonts.nunito(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
               keyboardType: TextInputType.number,
               maxLength: 16, // Limits the input to 16 characters
@@ -1142,18 +1142,18 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
     return Form(
       key: controller.formKey3,
       child: ListView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         children: [
           Container(
-            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
+            padding: const EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               children: [
-                Icon(Icons.monetization_on_outlined, color: Colors.orange),
-                SizedBox(width: 15),
+                const Icon(Icons.monetization_on_outlined, color: Colors.orange),
+                const SizedBox(width: 15),
                 Expanded(
                   child: FutureBuilder<Currency>(
                     future: API.CurrencyID(), // Fetch currency data
@@ -1168,7 +1168,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                       } else if (snapshot.hasError) {
                         return Center(child: Text('Error: ${snapshot.error}'));
                       } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
-                        return Center(child: Text('No data available'));
+                        return const Center(child: Text('No data available'));
                       } else {
 
                         Map<String, String> currencyMap = snapshot.data!.data!;
@@ -1217,7 +1217,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                                 }
                                 return null;
                               },
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none, // Remove default border
                               ),
                               isExpanded: true, // Make dropdown take full width
@@ -1231,17 +1231,17 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               ],
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 20, bottom: 10, right: 15),
+            padding: const EdgeInsets.only(left: 20, bottom: 10, right: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               children: [
-                Icon(Icons.account_balance, color: Colors.orange),
-                SizedBox(width: 15),
+                const Icon(Icons.account_balance, color: Colors.orange),
+                const SizedBox(width: 15),
                 Expanded(
                   child: FutureBuilder<Bank>(
                     future: API.BankID(), // Fetch bank data
@@ -1256,7 +1256,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                       } else if (snapshot.hasError) {
                         return Center(child: Text('Error: ${snapshot.error}'));
                       } else if (!snapshot.hasData || snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
-                        return Center(child: Text('No data available'));
+                        return const Center(child: Text('No data available'));
                       } else {
                         // Extract the bank data from the dictionary
                         Map<String, String> bankMap = snapshot.data!.data!;
@@ -1317,7 +1317,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                                 }
                                 return null;
                               },
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none, // Remove default border
                               ),
                               isExpanded: true, // Make dropdown take full width
@@ -1331,9 +1331,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               ],
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
+            padding: const EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1342,12 +1342,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.bankAccountNumberController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.comment_bank_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.comment_bank_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Bank Account',
                 labelStyle: GoogleFonts.nunito(),
                 alignLabelWithHint: true, // Menyelaraskan label dengan hint
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -1358,9 +1358,9 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.only(left: 14, bottom: 10, top: 10),
+            padding: const EdgeInsets.only(left: 14, bottom: 10, top: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1369,12 +1369,12 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               style: GoogleFonts.nunito(),
               controller: controller.bankAccountNameController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.comment_bank_rounded, color: Colors.orange),
+                prefixIcon: const Icon(Icons.comment_bank_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Bank Account Holder',
                 labelStyle: GoogleFonts.nunito(),
                 alignLabelWithHint: true, // Menyelaraskan label dengan hint
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0), // Atur padding agar pesan sejajar dengan hint
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -1384,7 +1384,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           _buildImageUploadSection(controller),
         ],
       ),
@@ -1477,7 +1477,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                     if (imageFile.value != null) {
                       return _buildFilePreview(imageFile.value!, controller);
                     } else {
-                      return Icon(
+                      return const Icon(
                         Icons.camera_alt,
                         size: 100,
                         color: Colors.grey,

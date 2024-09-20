@@ -231,19 +231,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                         onPressed: isButtonDisabled
                                             ? null
                                             : () async {
-                                          final otp = controller.OTPController
-                                              .text;
-                                          if (otp.isNotEmpty) {
-                                            await _sendOtp(otp);
-                                            _startTimer();
-                                          } else {
-                                            Get.snackbar(
-                                              'Gagal OTP',
-                                              'Kode OTP Anda salah atau sudah kadaluarsa',
-                                              backgroundColor: Colors.redAccent,
-                                              colorText: Colors.white,
-                                            );
-                                          }
+                                          await _sendOtp();
+                                          _startTimer();
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: isButtonDisabled
@@ -317,10 +306,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     );
   }
 
-  Future<void> _sendOtp(String otp) async {
+  Future<void> _sendOtp() async {
     try {
       final String email = controller.emailController.text;
-      final verifikasi = await API.VerifikasiID();
+      final verifikasi = await API.VerifikasiregisID();
       if (verifikasi.data != null && verifikasi.data!.userId != null) {
         final otpResponse = await API.sendOtpID(
           email: email,
@@ -328,6 +317,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
           userid: verifikasi.data!.userId.toString(),
           createdby: 'system',
         );
+        print('${email}');
+        print('${verifikasi.data!.userId.toString()}');
         print('OTP Response message: ${otpResponse.message}');
       } else {
         print('Error: User ID tidak ditemukan dalam respons verifikasi.');
@@ -341,18 +332,18 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     try {
       final String email = controller.emailController.text;
       final otpResponse = await API.OtpID(email: email, otp: otp);
-
+        print('${email}');
+        print('${otp}');
       if (otpResponse.message == 'OTP verified successfully') {
-        // OTP berhasil diverifikasi, lakukan proses selanjutnya
         Get.snackbar(
           'OTP Berhasil',
           'Verifikasi berhasil. Anda akan diarahkan ke halaman berikutnya.',
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+        Get.toNamed(Routes.AUTHENTICATION);
         await _handleVerifikasiResponse();
       } else {
-        // Menangani respons jika OTP tidak valid atau ada pesan kesalahan lainnya
         Get.snackbar(
           'Gagal OTP',
           otpResponse.message ?? 'Pesan tidak tersedia',
@@ -363,6 +354,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     } catch (e) {
       // Tangani kesalahan yang tidak terduga
       print('Error during OTP verification: $e');
+      print(controller.emailloginController.text);
       Get.snackbar(
         'Error',
         'Terjadi kesalahan saat memverifikasi OTP',
@@ -402,6 +394,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       }
     } catch (e) {
       print('Error during VerifikasiID: $e');
+      print(controller.emailloginController.text);
       Get.snackbar(
         'Error',
         'Terjadi kesalahan saat memverifikasi ID',
