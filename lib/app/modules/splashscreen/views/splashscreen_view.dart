@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../data/endpoint.dart';
 import '../../../data/localstorage.dart';
 import '../../../routes/app_pages.dart';
 
@@ -20,13 +22,24 @@ class _SplashscreenViewState extends State<SplashscreenView> {
   }
 
   Future<void> _checkTokenAndNavigate() async {
-    await Future.delayed(Duration(seconds: 3)); // Wait for 3 seconds
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastPage = prefs.getString('lastPage');
 
-    bool hasToken = await LocalStorages.hasToken();
-    if (hasToken) {
-      Get.offAllNamed(Routes.HOME); // Navigate to Home if token exists
+    if (lastPage == 'OTP') {
+      Get.offAllNamed(Routes.OtpVerification); // Arahkan ke halaman OTP jika itu adalah halaman terakhir
     } else {
-      Get.offAllNamed(Routes.AUTHENTICATION); // Navigate to Login if token does not exist
+      // Implementasi logika pengecekan token yang sudah ada
+      bool hasToken = await LocalStorages.hasToken();
+      if (hasToken) {
+        final verifikasi = await API.VerifikasiID();
+        if (verifikasi.data?.preTest == true) {
+          Get.offAllNamed(Routes.HOME); // Navigate to Home if preTest is true
+        } else {
+          Get.offAllNamed(Routes.QUIZ); // Navigate to Quiz if preTest is false
+        }
+      } else {
+        Get.offAllNamed(Routes.AUTHENTICATION); // Navigate to Login if token does not exist
+      }
     }
   }
 

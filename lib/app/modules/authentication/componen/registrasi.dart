@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -151,12 +152,10 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                   } else {
                     HapticFeedback.lightImpact();
 
-                    // Check if all forms are valid
                     if (controller.formKey1.currentState?.validate() == true &&
                         controller.formKey2.currentState?.validate() == true &&
                         controller.formKey3.currentState?.validate() == true) {
                       try {
-                        // Check for any empty required fields
                         List<String> emptyFields = [];
 
                         // Validate fields
@@ -179,18 +178,15 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                             backgroundColor: Colors.redAccent,
                             colorText: Colors.white,
                           );
-                          return; // Exit the function if there are empty fields
+                          return;
                         }
 
-                        // Cek jika siup masih null, gunakan file default
                         if (controller.siup.value == null) {
-                          await controller.loadDefaultSiup(); // Panggil fungsi untuk memuat file default
+                          await controller.loadDefaultSiup();
                         }
 
-                        // Prepare data for API request
                         String dateOfBirth = DateFormat('yyyy-MM-dd').format(controller.selectedDate.value ?? DateTime.now());
 
-                        // Print values being sent to the API
                         Map<String, dynamic> requestBody = {
                           'name': controller.nameController.text,
                           'address': controller.addressController.text,
@@ -215,78 +211,74 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                           'license_number': controller.licenseNumberController.text,
                           'password': controller.passwordController.text,
                           'password_confirmation': controller.passwordConfirmationController.text,
-
                         };
-
-                        print('Sending the following request body to the API:');
-                        print(jsonEncode(requestBody));
 
                         controller.isLoading.value = true;
 
-                        // Call the API
-                        Registrasi? registrationResponse = await API.RegisterID(
-                          name: controller.nameController.text,
-                          address: controller.addressController.text,
-                          place_of_birth: controller.placeOfBirthController.text,
-                          date_of_birth: dateOfBirth,
-                          phone_number: controller.phoneNumberController.text,
-                          email: controller.emailController.text,
-                          bank_account_name: controller.bankAccountNameController.text,
-                          bank_account_number: controller.bankAccountNumberController.text,
-                          bank_code: controller.selectedBank.value ?? '',
-                          bank_name: controller.selectedBankName.value ?? '',
-                          bank_currency: controller.selectedCurency.value ?? '',
-                          civil_id: controller.civilIdController.text,
-                          tax_id: controller.taxIdController.text,
-                          corporate: controller.selectedType.value ?? '',
-                          salutation: controller.selectedSalutation.value ?? '',
-                          zip_code: controller.zipCodeController.text,
-                          province: controller.selectedProvince.value ?? '',
-                          city: controller.selectedCity.value ?? '',
-                          pic: controller.PicController.text,
-                          gender: controller.selectedGender.value ?? '',
-                          license_number: controller.licenseNumberController.text,
-                          password: controller.passwordController.text,
-                          password_confirmation: controller.passwordConfirmationController.text,
-                          civil_id_card: controller.civilIdCard.value,
-                          tax_id_card: controller.taxIdCard.value,
-                          license_aaui: controller.licenseAaui.value,
-                          saving_book: controller.savingBook.value,
-                          siup: controller.siup.value,
-                          profile_picture: controller.profilePicture.value,
-                        );
+                        try {
+                          // Call the API
+                          Registrasi? registrationResponse = await API.RegisterID(
+                            name: controller.nameController.text,
+                            address: controller.addressController.text,
+                            place_of_birth: controller.placeOfBirthController.text,
+                            date_of_birth: dateOfBirth,
+                            phone_number: controller.phoneNumberController.text,
+                            email: controller.emailController.text,
+                            bank_account_name: controller.bankAccountNameController.text,
+                            bank_account_number: controller.bankAccountNumberController.text,
+                            bank_code: controller.selectedBank.value ?? '',
+                            bank_name: controller.selectedBankName.value ?? '',
+                            bank_currency: controller.selectedCurency.value ?? '',
+                            civil_id: controller.civilIdController.text,
+                            tax_id: controller.taxIdController.text,
+                            corporate: controller.selectedType.value ?? '',
+                            salutation: controller.selectedSalutation.value ?? '',
+                            zip_code: controller.zipCodeController.text,
+                            province: controller.selectedProvince.value ?? '',
+                            city: controller.selectedCity.value ?? '',
+                            pic: controller.PicController.text,
+                            gender: controller.selectedGender.value ?? '',
+                            license_number: controller.licenseNumberController.text,
+                            password: controller.passwordController.text,
+                            password_confirmation: controller.passwordConfirmationController.text,
+                            civil_id_card: controller.civilIdCard.value,
+                            tax_id_card: controller.taxIdCard.value,
+                            license_aaui: controller.licenseAaui.value,
+                            saving_book: controller.savingBook.value,
+                            siup: controller.siup.value,
+                            profile_picture: controller.profilePicture.value,
+                          );
 
-                        // Handle response
-                        if (registrationResponse != null && registrationResponse.data != null) {
-                          String token = registrationResponse.data!.token ?? '';
-                          print("Registration successful, received token: $token");
-                          Get.offAllNamed(Routes.AUTHENTICATION);
-                        } else {
-                          // Get.snackbar(
-                          //   'Registration Failed',
-                          //   'An unexpected error occurred. Please try again.',
-                          //   backgroundColor: Colors.redAccent,
-                          //   colorText: Colors.white,
-                          // );
+                          if (registrationResponse != null && registrationResponse.data != null) {
+                            String token = registrationResponse.data!.token ?? '';
+                            Get.offAllNamed(Routes.AUTHENTICATION);
+                          } else {
+                            throw DioError(requestOptions: RequestOptions(path: ''));
+                          }
+                        } on DioError catch (e) {
+                          if (e.response != null && e.response!.statusCode == 422) {
+                            final errorData = e.response!.data['data'];
+                            final errorMessage = (errorData as List).join(', ');
+
+                            Get.snackbar(
+                              'Gagal Registrasi',
+                              errorMessage,
+                              backgroundColor: Colors.redAccent,
+                              colorText: Colors.white,
+                            );
+                          } else {
+                          }
+                        } finally {
+                          controller.isLoading.value = false;
                         }
                       } catch (e) {
-                        print('Error during registration: $e');
                         Get.snackbar(
                           'Form Error',
                           '$e',
                           backgroundColor: Colors.redAccent,
                           colorText: Colors.white,
                         );
-                      } finally {
-                        controller.isLoading.value = false;
                       }
-                    } else {
-                      // Get.snackbar(
-                      //   'Form Error',
-                      //   'Please fill all the required forms correctly.',
-                      //   backgroundColor: Colors.redAccent,
-                      //   colorText: Colors.white,
-                      // );
                     }
                   }
                 },
@@ -304,6 +296,7 @@ class _RegistrationStepperState extends State<RegistrationStepper> {
                 }
               }),
             ),
+
           ],
         ),
       )

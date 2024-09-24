@@ -410,13 +410,19 @@ class _EditAccountState extends State<EditAccount> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: TextFormField(
-              style: GoogleFonts.nunito(),
+              style: GoogleFonts.nunito(
+                color: Colors.grey, // Set the text color to grey
+              ),
               controller: controller.nameController,
+              readOnly: true,
+              enabled: false, // Disable the TextFormField to make it grey and read-only
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.person, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: 'Full Name',
-                labelStyle: GoogleFonts.nunito(),
+                labelStyle: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the label text color to grey
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -433,22 +439,29 @@ class _EditAccountState extends State<EditAccount> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: TextFormField(
-              style: GoogleFonts.nunito(),
+              style: GoogleFonts.nunito(
+                color: Colors.grey, // Set the text color to grey
+              ),
               controller: controller.birthController,
               readOnly: true,
+              enabled: false, // Disable the TextFormField to make it grey and read-only
               decoration: InputDecoration(
                 prefixIcon: Icon(
-                    Icons.calendar_month_rounded, color: Colors.orange),
+                  Icons.calendar_month_rounded,
+                  color: Colors.orange, // Set the icon color to grey
+                ),
                 border: InputBorder.none,
                 labelText: 'Date of Birth',
-                labelStyle: GoogleFonts.nunito(),
-                hintStyle: GoogleFonts.nunito(),
+                labelStyle: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the label text color to grey
+                ),
+                hintStyle: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the hint text color to grey
+                ),
                 hintText: controller.selectedDate.value == null
                     ? 'Select Date of Birth'
-                    : DateFormat('yyyy-MM-dd').format(
-                    controller.selectedDate.value!),
+                    : DateFormat('yyyy-MM-dd').format(controller.selectedDate.value!),
               ),
-              onTap: () => controller.selectDate(DateTime.now()),
             ),
           ),
           SizedBox(height: 10),
@@ -458,15 +471,20 @@ class _EditAccountState extends State<EditAccount> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: TextFormField(
-              style: GoogleFonts.nunito(),
+              style: GoogleFonts.nunito(
+                color: Colors.grey, // Set the text color to grey
+              ),
               controller: controller.placeOfBirthController,
               keyboardType: TextInputType.text,
+              readOnly: true,
               decoration: InputDecoration(
                 prefixIcon: Icon(
                     Icons.maps_home_work_rounded, color: Colors.orange),
                 border: InputBorder.none,
                 labelText: ' Place of birth',
-                labelStyle: GoogleFonts.nunito(),
+                labelStyle: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the label text color to grey
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -504,41 +522,44 @@ class _EditAccountState extends State<EditAccount> {
 
                       return DropdownButtonFormField<String>(
                         value: savedValue,
-                        hint: Text('Select Salutation', style: GoogleFonts
-                            .nunito()),
-                        isExpanded: true,
-                        // Ensures dropdown uses the full width
+                        hint: Text(
+                          'Select Salutation',
+                          style: GoogleFonts.nunito(
+                            color: Colors.grey, // Set the hint text color to grey
+                          ),
+                        ),
+                        isExpanded: true, // Ensures dropdown uses the full width
                         items: controller.salutations.map((salutation) {
                           return DropdownMenuItem<String>(
                             value: salutation,
                             child: Text(
                               salutation,
-                              style: GoogleFonts.nunito(),
-                              overflow: TextOverflow.ellipsis,
-                              // Handle text overflow
+                              style: GoogleFonts.nunito(
+                                color: Colors.grey, // Set the dropdown items text color to grey
+                              ),
+                              overflow: TextOverflow.ellipsis, // Handle text overflow
                               maxLines: 1, // Limit text to a single line
                             ),
                           );
                         }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            controller.selectedSalutation.value = value;
-                            LocalStorage.saveSelectedSalutation(
-                                value); // Save the selected value
-                            print("Selected Salutation: ${controller
-                                .selectedSalutation.value}");
-                          }
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please select a Salutation';
-                          }
-                          return null;
-                        },
+                        onChanged: null, // Set to null to make the dropdown read-only
                         decoration: InputDecoration(
                           border: InputBorder.none, // Remove the default border
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: Colors.transparent, // Set the border color to grey
+                            ),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: Colors.grey, // Set the disabled border color to grey
+                            ),
+                          ),
                         ),
                       );
+
                     }
                   }),
                 ),
@@ -564,9 +585,7 @@ class _EditAccountState extends State<EditAccount> {
                         leading: Radio<String>(
                           value: 'Male',
                           groupValue: controller.selectedGender.value,
-                          onChanged: (value) {
-                            controller.selectedGender.value = value;
-                          },
+                          onChanged: null, // Set to null to make the radio button read-only
                         ),
                       ),
                     ),
@@ -576,9 +595,7 @@ class _EditAccountState extends State<EditAccount> {
                         leading: Radio<String>(
                           value: 'Female',
                           groupValue: controller.selectedGender.value,
-                          onChanged: (value) {
-                            controller.selectedGender.value = value;
-                          },
+                          onChanged: null, // Set to null to make the radio button read-only
                         ),
                       ),
                     ),
@@ -589,53 +606,69 @@ class _EditAccountState extends State<EditAccount> {
           ),
           SizedBox(height: 10),
           Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: TextFormField(
-              style: GoogleFonts.nunito(),
-              controller: controller.emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                prefixIcon: Icon(
-                    Icons.alternate_email_rounded, color: Colors.orange),
-                border: InputBorder.none,
-                labelText: 'Email',
-                labelStyle: GoogleFonts.nunito(),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your Phone Number';
-                }
-                return null;
-              },
-            ),
+              child: TextFormField(
+                keyboardType: TextInputType.emailAddress,
+                style: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the text color to grey
+                ),
+                readOnly: true,
+                enabled: false, // Disable the TextFormField to make it grey and read-only
+                decoration: InputDecoration(
+                  prefixIcon: Icon(
+                    Icons.alternate_email_rounded,
+                    color: Colors.orange, // Set the icon color to grey
+                  ),
+                  border: InputBorder.none,
+                  labelText: 'Email',
+                  labelStyle: GoogleFonts.nunito(
+                    color: Colors.grey, // Set the label text color to grey
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your Email';
+                  }
+                  return null;
+                },
+              )
           ),
           SizedBox(height: 10),
           Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: TextFormField(
-              style: GoogleFonts.nunito(),
-              controller: controller.phoneNumberController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                prefixIcon: Icon(
-                    Icons.phone_android_rounded, color: Colors.orange),
-                border: InputBorder.none,
-                labelText: 'Phone Number',
-                labelStyle: GoogleFonts.nunito(),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your Phone Number';
-                }
-                return null;
-              },
-            ),
+              child: TextFormField(
+                style: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the text color to grey
+                ),
+                controller: controller.phoneNumberController,
+                keyboardType: TextInputType.number,
+                readOnly: true,
+                enabled: false, // Disable the TextFormField to make it grey and read-only
+                decoration: InputDecoration(
+                  prefixIcon: Icon(
+                    Icons.phone_android_rounded,
+                    color: Colors.orange, // Set the icon color to grey
+                  ),
+                  border: InputBorder.none,
+                  labelText: 'Phone Number',
+                  labelStyle: GoogleFonts.nunito(
+                    color: Colors.grey, // Set the label text color to grey
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your Phone Number';
+                  }
+                  return null;
+                },
+              )
+
           ),
           SizedBox(height: 10),
           Container(
@@ -647,36 +680,26 @@ class _EditAccountState extends State<EditAccount> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Account Type', style: GoogleFonts.nunito()),
+                Text('Account Type', style: GoogleFonts.nunito(color: Colors.grey)),
                 Row(
                   children: [
                     Expanded(
                       child: ListTile(
-                        title: Text('Individual', style: GoogleFonts.nunito()),
+                        title: Text('Individual', style: GoogleFonts.nunito(color: Colors.grey)),
                         leading: Radio<String>(
                           value: '0', // Use '0' for Individual
                           groupValue: controller.selectedType.value,
-                          onChanged: (value) {
-                            controller.selectedType.value =
-                                value ?? '0'; // Default to '0'
-                            print("Individual : ${controller.selectedType
-                                .value}");
-                          },
+                          onChanged: null, // Make read-only by setting onChanged to null
                         ),
                       ),
                     ),
                     Expanded(
                       child: ListTile(
-                        title: Text('Corporate', style: GoogleFonts.nunito()),
+                        title: Text('Corporate', style: GoogleFonts.nunito(color: Colors.grey)),
                         leading: Radio<String>(
                           value: '1',
                           groupValue: controller.selectedType.value,
-                          onChanged: (value) {
-                            controller.selectedType.value =
-                                value ?? '1'; // Default to '1'
-                            print(
-                                "Corporate : ${controller.selectedType.value}");
-                          },
+                          onChanged: null, // Make read-only by setting onChanged to null
                         ),
                       ),
                     ),
@@ -687,11 +710,14 @@ class _EditAccountState extends State<EditAccount> {
                     visible: controller.selectedType.value == '1',
                     child: TextField(
                       controller: controller.PicController,
+                      readOnly: true, // Make the TextField read-only
+                      enabled: false, // Disable the TextField to make it grey
+                      style: GoogleFonts.nunito(color: Colors.grey), // Set text color to grey
                       decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.person, color: Colors.orange),
+                        prefixIcon: Icon(Icons.person, color: Colors.grey), // Set icon color to grey
                         border: InputBorder.none,
                         labelText: 'Corporate Info',
-                        labelStyle: GoogleFonts.nunito(),
+                        labelStyle: GoogleFonts.nunito(color: Colors.grey), // Set label color to grey
                       ),
                     ),
                   );
@@ -785,29 +811,26 @@ class _EditAccountState extends State<EditAccount> {
                             value: savedValue,
                             // Set the selected value
                             hint: Text(
-                                'Select Province', style: GoogleFonts.nunito()),
+                              'Select Province',
+                              style: GoogleFonts.nunito(
+                                color: Colors.grey, // Set hint text color to grey
+                              ),
+                            ),
                             items: provinceEntries.map((entry) {
                               return DropdownMenuItem<String>(
                                 value: entry.key,
                                 // Use province code as the value
                                 child: Text(
                                   entry.value, // Display the full province name
-                                  style: GoogleFonts.nunito(),
-                                  overflow: TextOverflow.ellipsis,
-                                  // Handle overflow
+                                  style: GoogleFonts.nunito(
+                                    color: Colors.grey, // Set the dropdown items text color to grey
+                                  ),
+                                  overflow: TextOverflow.ellipsis, // Handle overflow
                                   maxLines: 1, // Limit text to a single line
                                 ),
                               );
                             }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                controller.selectedProvince.value = value;
-                                LocalStorage.saveSelectedCity(
-                                    value); // Save the selected province code
-                                print("Selected Province Code: ${controller
-                                    .selectedProvince.value}");
-                              }
-                            },
+                            onChanged: null, // Set to null to make the dropdown read-only
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please select a Province';
@@ -816,6 +839,12 @@ class _EditAccountState extends State<EditAccount> {
                             },
                             decoration: InputDecoration(
                               border: InputBorder.none, // Remove default border
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.grey, // Set the disabled border color to grey
+                                ),
+                              ),
                             ),
                             isExpanded: true, // Make dropdown take full width
                           );
@@ -836,7 +865,7 @@ class _EditAccountState extends State<EditAccount> {
             padding: EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
               children: [
-                Icon(Icons.location_city_rounded, color: Colors.orange),
+                Icon(Icons.location_city_rounded, color: Colors.orange), // Set icon color to grey
                 SizedBox(width: 15),
                 Expanded(
                   child: Obx(() {
@@ -855,28 +884,27 @@ class _EditAccountState extends State<EditAccount> {
                       return DropdownButtonFormField<String>(
                         value: savedValue,
                         // Set the selected value
-                        hint: Text('Select City', style: GoogleFonts.nunito()),
+                        hint: Text(
+                          'Select City',
+                          style: GoogleFonts.nunito(
+                            color: Colors.grey, // Set hint text color to grey
+                          ),
+                        ),
                         items: controller.cities.entries.map((entry) {
                           return DropdownMenuItem<String>(
                             value: entry.key, // Use city ID as the value
                             child: Text(
                               entry.value, // Display the city name
-                              style: GoogleFonts.nunito(),
+                              style: GoogleFonts.nunito(
+                                color: Colors.grey, // Set the dropdown items text color to grey
+                              ),
                               overflow: TextOverflow.ellipsis,
                               // Handle overflow
                               maxLines: 1, // Limit text to a single line
                             ),
                           );
                         }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            controller.selectedCity.value = value;
-                            LocalStorage.saveSelectedProvince(
-                                value); // Save the selected ID
-                            print("Selected City ID: ${controller.selectedCity
-                                .value}");
-                          }
-                        },
+                        onChanged: null, // Set to null to make the dropdown read-only
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please select a City';
@@ -885,6 +913,12 @@ class _EditAccountState extends State<EditAccount> {
                         },
                         decoration: InputDecoration(
                           border: InputBorder.none, // Remove the default border
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: Colors.grey, // Set the disabled border color to grey
+                            ),
+                          ),
                         ),
                         isExpanded: true, // Make dropdown take full width
                       );
@@ -901,13 +935,22 @@ class _EditAccountState extends State<EditAccount> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: TextFormField(
-              style: GoogleFonts.nunito(),
+              style: GoogleFonts.nunito(
+                color: Colors.grey, // Set the text color to grey
+              ),
               controller: controller.zipCodeController,
+              readOnly: true, // Make the TextFormField read-only
+              enabled: false, // Disable the TextFormField to make it grey
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.location_city, color: Colors.orange),
+                prefixIcon: Icon(
+                  Icons.location_city,
+                  color: Colors.orange, // Set the icon color to grey
+                ),
                 border: InputBorder.none,
                 labelText: 'Zip Code',
-                labelStyle: GoogleFonts.nunito(),
+                labelStyle: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the label text color to grey
+                ),
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -918,20 +961,29 @@ class _EditAccountState extends State<EditAccount> {
               },
             ),
           ),
-          SizedBox(height: 10),
+    SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: TextFormField(
-              style: GoogleFonts.nunito(),
+            child:TextFormField(
+              style: GoogleFonts.nunito(
+                color: Colors.grey, // Set the text color to grey
+              ),
               controller: controller.licenseNumberController,
+              readOnly: true, // Make the TextFormField read-only
+              enabled: false, // Disable the TextFormField to make it grey
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.numbers, color: Colors.orange),
+                prefixIcon: Icon(
+                  Icons.numbers,
+                  color: Colors.orange, // Set the icon color to grey
+                ),
                 border: InputBorder.none,
                 labelText: 'License Number',
-                labelStyle: GoogleFonts.nunito(),
+                labelStyle: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the label text color to grey
+                ),
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -949,18 +1001,25 @@ class _EditAccountState extends State<EditAccount> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: TextFormField(
-              style: GoogleFonts.nunito(),
+              style: GoogleFonts.nunito(
+                color: Colors.grey, // Set the text color to grey
+              ),
               controller: controller.civilIdController,
+              readOnly: true, // Make the TextFormField read-only
+              enabled: false, // Disable the TextFormField to make it grey
               decoration: InputDecoration(
                 prefixIcon: Icon(
-                    Icons.credit_card_rounded, color: Colors.orange),
+                  Icons.credit_card_rounded,
+                  color: Colors.orange, // Set the icon color to grey
+                ),
                 border: InputBorder.none,
                 labelText: 'NIK / Civil ID',
-                labelStyle: GoogleFonts.nunito(),
+                labelStyle: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the label text color to grey
+                ),
               ),
               keyboardType: TextInputType.number,
-              maxLength: 16,
-              // Limits the input to 16 characters
+              maxLength: 16, // Limits the input to 16 characters
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly, // Allows only digits
               ],
@@ -974,7 +1033,6 @@ class _EditAccountState extends State<EditAccount> {
                 return null;
               },
             ),
-
           ),
           SizedBox(height: 10),
           Container(
@@ -983,18 +1041,25 @@ class _EditAccountState extends State<EditAccount> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: TextFormField(
-              style: GoogleFonts.nunito(),
+              style: GoogleFonts.nunito(
+                color: Colors.grey, // Set the text color to grey
+              ),
               controller: controller.taxIdController,
+              readOnly: true, // Make the TextFormField read-only
+              enabled: false, // Disable the TextFormField to make it grey
               decoration: InputDecoration(
                 prefixIcon: Icon(
-                    Icons.credit_card_rounded, color: Colors.orange),
+                  Icons.credit_card_rounded,
+                  color: Colors.orange, // Set the icon color to grey
+                ),
                 border: InputBorder.none,
                 labelText: 'NPWP / TaxID',
-                labelStyle: GoogleFonts.nunito(),
+                labelStyle: GoogleFonts.nunito(
+                  color: Colors.grey, // Set the label text color to grey
+                ),
               ),
               keyboardType: TextInputType.number,
-              maxLength: 16,
-              // Limits the input to 16 characters
+              maxLength: 16, // Limits the input to 16 characters
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly, // Allows only digits
               ],
@@ -1429,75 +1494,75 @@ class _EditAccountState extends State<EditAccount> {
     );
   }
 }
-  Future<void> _downloadFile(String url, String fileName) async {
-    try {
-      // Request storage permission
+Future<void> _downloadFile(String url, String fileName) async {
+  try {
+    // Request storage permission
 
-      // Get the "Downloads" directory path
-      final directory = await getDownloadsDirectory();
-      if (directory == null) {
-        Get.snackbar(
-          'Error',
-          'Could not access the downloads directory.',
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      // Ensure the file name has the correct .pdf extension
-      if (!fileName.endsWith('.pdf')) {
-        fileName = '$fileName.pdf';
-      }
-
-      // Construct the full file path
-      final filePath = '${directory.path}/$fileName';
-
-      // Start the file download using Dio
-      final dio = Dio();
-      final response = await dio.download(url, filePath);
-
-      if (response.statusCode == 200) {
-        // Show Snackbar with an action button to open the file
-        Get.snackbar(
-          'Download Completed',
-          'File downloaded successfully to $filePath',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      } else {
-        Get.snackbar(
-          'Download Failed',
-          'Failed to download the file.',
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
-      }
-    } catch (e) {
-      print('Error downloading file: $e');
+    // Get the "Downloads" directory path
+    final directory = await getDownloadsDirectory();
+    if (directory == null) {
       Get.snackbar(
-        'Download Error',
-        'An error occurred while downloading the file.',
+        'Error',
+        'Could not access the downloads directory.',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    // Ensure the file name has the correct .pdf extension
+    if (!fileName.endsWith('.pdf')) {
+      fileName = '$fileName.pdf';
+    }
+
+    // Construct the full file path
+    final filePath = '${directory.path}/$fileName';
+
+    // Start the file download using Dio
+    final dio = Dio();
+    final response = await dio.download(url, filePath);
+
+    if (response.statusCode == 200) {
+      // Show Snackbar with an action button to open the file
+      Get.snackbar(
+        'Download Completed',
+        'File downloaded successfully to $filePath',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } else {
+      Get.snackbar(
+        'Download Failed',
+        'Failed to download the file.',
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
     }
+  } catch (e) {
+    print('Error downloading file: $e');
+    Get.snackbar(
+      'Download Error',
+      'An error occurred while downloading the file.',
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+    );
   }
+}
 
 
-  Future<Directory?> getDownloadsDirectory() async {
-    if (Platform.isAndroid) {
-      return Directory('/storage/emulated/0/Download'); // Common Downloads directory path for Android
-    } else if (Platform.isIOS) {
-      return await getApplicationDocumentsDirectory(); // iOS does not have a traditional "Downloads" folder
-    }
-    return null;
+Future<Directory?> getDownloadsDirectory() async {
+  if (Platform.isAndroid) {
+    return Directory('/storage/emulated/0/Download'); // Common Downloads directory path for Android
+  } else if (Platform.isIOS) {
+    return await getApplicationDocumentsDirectory(); // iOS does not have a traditional "Downloads" folder
   }
+  return null;
+}
 
 
 
 
-  Widget _buildFilePreview(File file, SettingController controller) {
+Widget _buildFilePreview(File file, SettingController controller) {
   if (file.path.endsWith('.pdf')) {
     return const Column(
       mainAxisAlignment: MainAxisAlignment.center,

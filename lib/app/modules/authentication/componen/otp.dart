@@ -20,7 +20,7 @@ class OtpVerificationPage extends StatefulWidget {
 }
 
 class _OtpVerificationPageState extends State<OtpVerificationPage> {
-  final AuthenticationController controller = Get.find();
+  final AuthenticationController controller = Get.put(AuthenticationController());
   bool isButtonDisabled = false;
   int remainingSeconds = 0;
   Timer? timer;
@@ -30,6 +30,18 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     timer?.cancel();
     super.dispose();
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _saveLastPage('OTP');
+  }
+
+  void _saveLastPage(String pageName) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastPage', pageName);
+  }
+
 
   void _startTimer() {
     setState(() {
@@ -77,6 +89,13 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
         color: const Color.fromRGBO(234, 239, 243, 1),
       ),
     );
+
+    void _clearLastPage() async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('lastPage');
+    }
+
+
     Future<bool> _onWillPop() async {
       final shouldExit = await showModalBottomSheet<bool>(
         context: context,
@@ -133,6 +152,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     }
     return WillPopScope(
       onWillPop: () async {
+
         _onWillPop();
         return true;
       },
@@ -312,7 +332,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       final verifikasi = await API.VerifikasiregisID();
       if (verifikasi.data != null && verifikasi.data!.userId != null) {
         final otpResponse = await API.sendOtpID(
-          email: email,
+          email: verifikasi.data!.email??'',
           app: 'Agency Room',
           userid: verifikasi.data!.userId.toString(),
           createdby: 'system',
@@ -330,10 +350,11 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
   Future<void> _verifyOtp(String otp) async {
     try {
-      final String email = controller.emailController.text;
-      final otpResponse = await API.OtpID(email: email, otp: otp);
-        print('${email}');
-        print('${otp}');
+      final verifikasi = await API.VerifikasiregisID();
+      final otpResponse = await API.OtpID(
+          email: verifikasi.data!.email??'',
+          otp: otp);
+
       if (otpResponse.message == 'OTP verified successfully') {
         Get.snackbar(
           'OTP Berhasil',
@@ -341,8 +362,16 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+
+        // Hapus data halaman terakhir yang disimpan
+        _clearLastPage();
+
+        // Navigasi ke halaman AUTHENTICATION
         Get.toNamed(Routes.AUTHENTICATION);
+
+        // Tangani respons Verifikasi
         await _handleVerifikasiResponse();
+
       } else {
         Get.snackbar(
           'Gagal OTP',
@@ -363,6 +392,12 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       );
     }
   }
+
+  void _clearLastPage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('lastPage');
+  }
+
 
 
   Future<void> _handleVerifikasiResponse() async {
