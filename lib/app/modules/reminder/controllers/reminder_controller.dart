@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -13,24 +14,33 @@ class ReminderController extends GetxController {
     super.onInit();
     _initializeNotifications();
     _loadNotes();
+    _requestNotificationPermission();
   }
 
-  // Inisialisasi notifikasi dengan callback onDidReceiveNotificationResponse
+  Future<void> _requestNotificationPermission() async {
+    final status = await Permission.notification.request();
+    if (status.isGranted) {
+      print('Izin notifikasi diberikan.');
+    } else {
+      print('Izin notifikasi ditolak.');
+    }
+  }
+
   void _initializeNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('app_icon');
 
     final InitializationSettings initializationSettings =
-    InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
+    InitializationSettings(android: initializationSettingsAndroid);
 
-    // Callback untuk menangani interaksi notifikasi
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
-        print('Notifikasi diklik: ${notificationResponse.payload}');
-        // Lakukan aksi yang diinginkan ketika notifikasi diklik
+        if (notificationResponse.payload != null) {
+          print('Notifikasi diklik: ${notificationResponse.payload}');
+        } else {
+          print('Notifikasi tidak memiliki payload.');
+        }
       },
     );
   }
@@ -41,7 +51,7 @@ class ReminderController extends GetxController {
       'note': note,
       'priority': priority,
       'reminderDate': reminderDate?.toIso8601String(),
-      'isPressed': false // Pastikan isPressed selalu diinisialisasi sebagai false
+      'isPressed': false,
     };
     notes.insert(0, newNote);
 
@@ -58,7 +68,7 @@ class ReminderController extends GetxController {
       'note': note,
       'priority': priority,
       'reminderDate': reminderDate?.toIso8601String(),
-      'isPressed': notes[index]['isPressed'] ?? false
+      'isPressed': notes[index]['isPressed'] ?? false,
     };
 
     if (reminderDate != null && reminderDate.isAfter(DateTime.now())) {
@@ -70,19 +80,22 @@ class ReminderController extends GetxController {
 
   void markAsPressed(int index) {
     notes[index]['isPressed'] = true;
-    _saveNotes(); // Simpan perubahan ke dalam SharedPreferences atau data lain
+    _saveNotes();
   }
 
   Future<void> _scheduleNotification(String title, String note, DateTime reminderDate) async {
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'reminder_channel_id', 'Reminders',
+      'reminder_channel_id',
+      'Reminders',
       channelDescription: 'This channel is for reminder notifications',
       importance: Importance.max,
       priority: Priority.high,
     );
+
     final platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
 
     final notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    print('Scheduling notification with ID: $notificationId');
 
     await flutterLocalNotificationsPlugin.schedule(
       notificationId,
@@ -91,19 +104,41 @@ class ReminderController extends GetxController {
       reminderDate,
       platformChannelSpecifics,
       androidAllowWhileIdle: true,
+    );
+  }
+
+  Future<void> showImmediateNotification(String title, String note) async {
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'immediate_channel_id',
+      'Immediate Notifications',
+      channelDescription: 'This channel is for immediate notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    final platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+      0, // ID notifikasi
+      title,
+      note,
+      platformChannelSpecifics,
     );
   }
 
   Future<void> scheduleManualNotification(String title, String note, DateTime reminderDate) async {
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'manual_reminder_channel_id', 'Manual Reminders',
+      'manual_reminder_channel_id',
+      'Manual Reminders',
       channelDescription: 'This channel is for manual reminder notifications',
       importance: Importance.max,
       priority: Priority.high,
     );
+
     final platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
 
     final notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    print('Scheduling manual notification with ID: $notificationId');
 
     await flutterLocalNotificationsPlugin.schedule(
       notificationId,
@@ -115,18 +150,26 @@ class ReminderController extends GetxController {
     );
   }
 
-  void _saveNotes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonNotes = jsonEncode(notes);
-    prefs.setString('notes', jsonNotes);
+  Future<void> _saveNotes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonNotes = jsonEncode(notes);
+      prefs.setString('notes', jsonNotes);
+    } catch (e) {
+      print('Error saving notes: $e');
+    }
   }
 
-  void _loadNotes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonNotes = prefs.getString('notes');
-    if (jsonNotes != null) {
-      final List<dynamic> decodedNotes = jsonDecode(jsonNotes);
-      notes.value = decodedNotes.map((item) => item as Map<String, dynamic>).toList();
+  Future<void> _loadNotes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonNotes = prefs.getString('notes');
+      if (jsonNotes != null) {
+        final List<dynamic> decodedNotes = jsonDecode(jsonNotes);
+        notes.value = decodedNotes.map((item) => item as Map<String, dynamic>).toList();
+      }
+    } catch (e) {
+      print('Error loading notes: $e');
     }
   }
 }

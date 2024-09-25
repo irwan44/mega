@@ -33,7 +33,7 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true">
-
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <!-- Pusher Channels Service -->
         <service
             android:name="com.pusher.pushnotifications.fcm.FCMInstanceIDService"

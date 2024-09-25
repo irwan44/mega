@@ -611,17 +611,14 @@ class _EditAccountState extends State<EditAccount> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: TextFormField(
-                keyboardType: TextInputType.emailAddress,
                 style: GoogleFonts.nunito(
                   color: Colors.grey, // Set the text color to grey
                 ),
+                controller: controller.emailController,
                 readOnly: true,
                 enabled: false, // Disable the TextFormField to make it grey and read-only
                 decoration: InputDecoration(
-                  prefixIcon: Icon(
-                    Icons.alternate_email_rounded,
-                    color: Colors.orange, // Set the icon color to grey
-                  ),
+                  prefixIcon: Icon(Icons.alternate_email_rounded, color: Colors.orange),
                   border: InputBorder.none,
                   labelText: 'Email',
                   labelStyle: GoogleFonts.nunito(
@@ -630,11 +627,11 @@ class _EditAccountState extends State<EditAccount> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your Email';
+                    return 'Please enter your full name';
                   }
                   return null;
                 },
-              )
+              ),
           ),
           SizedBox(height: 10),
           Container(

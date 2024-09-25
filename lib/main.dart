@@ -13,8 +13,9 @@ import 'app/modules/testpage/componen/test_provider.dart';
 import 'app/routes/app_pages.dart';
 
 void main() async {
-  await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
+
+  await GetStorage.init();
   await GetStorage.init('token-mekanik');
   await GetStorage.init('role-mekanik');
 
@@ -22,16 +23,22 @@ void main() async {
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
   ));
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight
+    DeviceOrientation.landscapeRight,
   ]);
 
+  // Initialize the notification plugin here
   const AndroidInitializationSettings initializationSettingsAndroid =
   AndroidInitializationSettings('@mipmap/ic_launcher');
   final InitializationSettings initializationSettings =
   InitializationSettings(android: initializationSettingsAndroid);
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
   runApp(
     MultiProvider(
@@ -73,7 +80,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
     requestPermission();
   }
 

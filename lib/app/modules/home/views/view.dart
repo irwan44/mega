@@ -227,6 +227,7 @@ class _ViewHomeState extends State<ViewHome> {
                               children: [
                                 _buildMenuItem(context, 'Sales', Icons.create),
                                 _buildMenuItem(context, 'Renew', Icons.refresh),
+                                _buildMenuItem(context, 'Dashboard', Icons.dashboard_outlined),
                                 _buildMenuItem(context, 'Ranks', Icons.star),
                                 _buildMenuItem(context, 'Learning', Icons.school),
                                 _buildMenuItem(context, 'Post-Test', Icons.assignment),
@@ -242,7 +243,7 @@ class _ViewHomeState extends State<ViewHome> {
                   ),
                 ),
                 Positioned(
-                  bottom: screenHeight * 0.30,
+                  bottom: screenHeight * 0.38,
                   right: 0,
                   child: Lottie.asset(
                     'assets/lottie/anm_bird.json',
@@ -252,7 +253,7 @@ class _ViewHomeState extends State<ViewHome> {
                   ),
                 ),
                 Positioned(
-                  bottom: screenHeight * 0.30,
+                  bottom: screenHeight * 0.38,
                   right: 0,
                   child: Lottie.asset(
                     'assets/lottie/anm_splash.json',
@@ -262,7 +263,7 @@ class _ViewHomeState extends State<ViewHome> {
                   ),
                 ),
                 Positioned(
-                  bottom: screenHeight * 0.30,
+                  bottom: screenHeight * 0.38,
                   right: 0,
                   child: Lottie.asset(
                     'assets/lottie/anm_celebration.json',
@@ -272,7 +273,7 @@ class _ViewHomeState extends State<ViewHome> {
                   ),
                 ),
                 Positioned(
-                  bottom: screenHeight * 0.30,
+                  bottom: screenHeight * 0.38,
                   right: 0,
                   child: Container(
                     width: screenWidth * 0.5,
@@ -454,7 +455,10 @@ class _ViewHomeState extends State<ViewHome> {
       }
     } else if (title == 'Ranks') {
       _showRanksUnderDevelopment();
-    } else if (title == 'Reminder') {
+    } else if (title == 'Dashboard') {
+      _showDashboardUnderDevelopment();
+    }
+    else if (title == 'Reminder') {
       Get.toNamed(Routes.REMINDER);
     } else if (title == 'Learning') {
       Get.toNamed(Routes.LEARNING);
@@ -761,6 +765,52 @@ class _ViewHomeState extends State<ViewHome> {
               const SizedBox(height: 10),
               const Text(
                 'Menu "Ranks" sedang dalam pengembangan dan belum dapat diakses saat ini.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child:
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                child: const Text('OK', style: TextStyle(color: Colors.white)),
+              ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  void _showDashboardUnderDevelopment() {
+    showModalBottomSheet(
+      showDragHandle: true,
+      context: context,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Menu Dalam Pengembangan',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Menu "Dashboard" sedang dalam pengembangan dan belum dapat diakses saat ini.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),

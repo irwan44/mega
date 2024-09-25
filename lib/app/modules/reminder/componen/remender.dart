@@ -156,95 +156,94 @@ class AddNoteView extends StatelessWidget {
                     'Reminder Date:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                padding: const EdgeInsets.all(10.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.15),
-                      spreadRadius: 5,
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.15),
+                          spreadRadius: 5,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child:
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Pastikan elemen dibagi dengan benar
-                    children: [
-                      // ListTile diperluas untuk mengisi ruang yang tersisa di sebelah kiri
-                      Expanded(
-                        child: Obx(() => ListTile(
-                          contentPadding: EdgeInsets.zero, // Hapus padding default ListTile
-                          title: Text(
-                            selectedDate.value == null
-                                ? 'No Date Selected'
-                                : DateFormat('yyyy-MM-dd HH:mm').format(selectedDate.value!),
-                          ),
-                          trailing: const Icon(Icons.calendar_today),
-                          onTap: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate.value ?? DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2101),
-                            );
-                            if (picked != null) {
-                              final TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                selectedDate.value = DateTime(
-                                  picked.year,
-                                  picked.month,
-                                  picked.day,
-                                  pickedTime.hour,
-                                  pickedTime.minute,
-                                );
-                              }
-                            }
-                          },
-                        )),
-                      ),
-                      const SizedBox(width: 10), // Spacer antara ListTile dan tombol
-                      SizedBox(
-                        height: 45,
-                        child: IconButton(
-                        icon: Icon(
-                        Icons.notification_add,
-                            color:  Colors.blue,
+                    child:
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Pastikan elemen dibagi dengan benar
+                      children: [
+                        // ListTile diperluas untuk mengisi ruang yang tersisa di sebelah kiri
+                        Expanded(
+                          child: Obx(() => ListTile(
+                            contentPadding: EdgeInsets.zero, // Hapus padding default ListTile
+                            title: Text(
+                              selectedDate.value == null
+                                  ? 'No Date Selected'
+                                  : DateFormat('yyyy-MM-dd HH:mm').format(selectedDate.value!),
                             ),
-                            onPressed: () {
-                              final reminderDate = selectedDate.value;
-                              if (reminderDate != null && reminderDate.isAfter(DateTime.now())) {
-                                // Aktifkan notifikasi menggunakan controller
-                                controller.scheduleManualNotification(
-                                  titleController.text,
-                                  noteController.text,
-                                  reminderDate,
+                            trailing: const Icon(Icons.calendar_today),
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate.value ?? DateTime.now(),
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime(2101),
+                              );
+                              if (picked != null) {
+                                final TimeOfDay? pickedTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
                                 );
-                                Get.snackbar(
-                                  'Notification Scheduled',
-                                  'Reminder set for "${DateFormat('yyyy-MM-dd HH:mm').format(reminderDate)}".',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                );
-                              } else {
-                                Get.snackbar(
-                                  'Error',
-                                  'Please set a valid future reminder date to schedule a notification.',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                  backgroundColor: Colors.red,
-                                  colorText: Colors.white,
-                                );
+                                if (pickedTime != null) {
+                                  selectedDate.value = DateTime(
+                                    picked.year,
+                                    picked.month,
+                                    picked.day,
+                                    pickedTime.hour,
+                                    pickedTime.minute,
+                                  );
+                                }
                               }
-                            })
-                      ),
-                    ],
-                  ),
+                            },
+                          )),
+                        ),
+                        const SizedBox(width: 10), // Spacer antara ListTile dan tombol
+                        SizedBox(
+                          height: 45,
+                          child: IconButton(
+                              icon: Icon(
+                                Icons.notification_add,
+                                color:  Colors.blue,
+                              ),
+                              onPressed: () {
+                                final reminderDate = selectedDate.value;
+                                if (reminderDate != null && reminderDate.isAfter(DateTime.now())) {
+                                  controller.scheduleManualNotification(
+                                    titleController.text,
+                                    noteController.text,
+                                    reminderDate,
+                                  );
+                                  Get.snackbar(
+                                    'Notification Scheduled',
+                                    'Reminder set for "${DateFormat('yyyy-MM-dd HH:mm').format(reminderDate)}".',
+                                    snackPosition: SnackPosition.TOP,
+                                  );
+                                } else {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Please set a valid future reminder date to schedule a notification.',
+                                    snackPosition: SnackPosition.TOP,
+                                    backgroundColor: Colors.red,
+                                    colorText: Colors.white,
+                                  );
+                                }
+                              }
+                          ),),
+                      ],
+                    ),
                   ),
 
 
